@@ -1,7 +1,7 @@
 import { Inbox } from "lucide-react";
 import { ReactNode } from "react";
 
-export function EmptyState({ title = "No data yet", description, icon }: { title?: string; description?: string; icon?: ReactNode }) {
+export function EmptyState({ title = "Aucune donnée", description, icon }: { title?: string; description?: string; icon?: ReactNode }) {
   return (
     <div className="flex flex-col items-center justify-center text-center py-16 px-6">
       <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center mb-4 text-muted-foreground">

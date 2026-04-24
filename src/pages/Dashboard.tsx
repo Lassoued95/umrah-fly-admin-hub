@@ -9,9 +9,9 @@ type Stat = { label: string; value: number | null; icon: any; tint: string };
 
 export default function Dashboard() {
   const [stats, setStats] = useState<Stat[]>([
-    { label: "Total Users", value: null, icon: Users, tint: "bg-primary/10 text-primary" },
-    { label: "Total Duas", value: null, icon: BookOpen, tint: "bg-accent/15 text-accent-foreground" },
-    { label: "Total Plannings", value: null, icon: CalendarRange, tint: "bg-success/10 text-success" },
+    { label: "Utilisateurs", value: null, icon: Users, tint: "bg-primary/10 text-primary" },
+    { label: "Douaas", value: null, icon: BookOpen, tint: "bg-accent/15 text-accent-foreground" },
+    { label: "Plannings", value: null, icon: CalendarRange, tint: "bg-success/10 text-success" },
   ]);
   const [loading, setLoading] = useState(true);
 
@@ -33,12 +33,12 @@ export default function Dashboard() {
           return 0;
         };
         setStats([
-          { label: "Total Users", value: num(users), icon: Users, tint: "bg-primary/10 text-primary" },
-          { label: "Total Duas", value: num(duas), icon: BookOpen, tint: "bg-accent/20 text-accent-foreground" },
-          { label: "Total Plannings", value: num(plannings), icon: CalendarRange, tint: "bg-success/10 text-success" },
+          { label: "Utilisateurs", value: num(users), icon: Users, tint: "bg-primary/10 text-primary" },
+          { label: "Douaas", value: num(duas), icon: BookOpen, tint: "bg-accent/20 text-accent-foreground" },
+          { label: "Plannings", value: num(plannings), icon: CalendarRange, tint: "bg-success/10 text-success" },
         ]);
       } catch (err: any) {
-        toast.error(err?.message || "Failed to load dashboard");
+        toast.error(err?.message || "Échec du chargement du tableau de bord");
       } finally {
         if (mounted) setLoading(false);
       }
@@ -48,7 +48,7 @@ export default function Dashboard() {
 
   return (
     <div className="animate-fade-in">
-      <PageHeader title="Dashboard" description="Overview of your platform." />
+      <PageHeader title="Tableau de bord" description="Vue d'ensemble de votre plateforme." />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {stats.map((s) => (
@@ -66,7 +66,7 @@ export default function Dashboard() {
             </div>
             <div className="mt-4 flex items-center gap-1.5 text-xs text-muted-foreground">
               <TrendingUp size={12} className="text-success" />
-              Live data from API
+              Données en direct depuis l'API
             </div>
           </div>
         ))}

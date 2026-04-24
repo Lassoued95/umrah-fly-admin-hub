@@ -52,7 +52,7 @@ export default function UsersPage() {
       const data = await api.get<User[]>("/utilisateurs/");
       setUsers(Array.isArray(data) ? data : []);
     } catch (err: any) {
-      toast.error(err?.message || "Failed to load users");
+      toast.error(err?.message || "Échec du chargement des utilisateurs");
     } finally {
       setLoading(false);
     }
@@ -80,19 +80,19 @@ export default function UsersPage() {
   const saveEdit = async () => {
     if (!editing) return;
     const errs: Record<string, string> = {};
-    if (!editForm.nom) errs.nom = "Required";
-    if (!editForm.prenom) errs.prenom = "Required";
-    if (!editForm.email) errs.email = "Required";
+    if (!editForm.nom) errs.nom = "Requis";
+    if (!editForm.prenom) errs.prenom = "Requis";
+    if (!editForm.email) errs.email = "Requis";
     setEditErrors(errs);
     if (Object.keys(errs).length) return;
     setSaving(true);
     try {
       await api.put(`/utilisateurs/${editing.id_utilisateur}`, editForm);
-      toast.success("User updated");
+      toast.success("Utilisateur mis à jour");
       setEditing(null);
       load();
     } catch (err: any) {
-      toast.error(err?.message || "Update failed");
+      toast.error(err?.message || "Échec de la mise à jour");
     } finally {
       setSaving(false);
     }
@@ -103,11 +103,11 @@ export default function UsersPage() {
     setDelLoading(true);
     try {
       await api.del(`/utilisateurs/${deleting.id_utilisateur}`);
-      toast.success("User deleted");
+      toast.success("Utilisateur supprimé");
       setDeleting(null);
       load();
     } catch (err: any) {
-      toast.error(err?.message || "Delete failed");
+      toast.error(err?.message || "Échec de la suppression");
     } finally {
       setDelLoading(false);
     }
@@ -124,14 +124,14 @@ export default function UsersPage() {
       ),
     },
     {
-      key: "nom", header: "Full name", sortable: true,
+      key: "nom", header: "Nom complet", sortable: true,
       accessor: (u) => `${u.prenom || ""} ${u.nom || ""}`.trim(),
       render: (u) => <div className="font-medium">{`${u.prenom || ""} ${u.nom || ""}`.trim() || "—"}</div>,
     },
     { key: "email", header: "Email", sortable: true, render: (u) => <span className="text-muted-foreground">{u.email || "—"}</span> },
-    { key: "telephone", header: "Phone", render: (u) => u.telephone || "—" },
+    { key: "telephone", header: "Téléphone", render: (u) => u.telephone || "—" },
     {
-      key: "role", header: "Role", sortable: true,
+      key: "role", header: "Rôle", sortable: true,
       render: (u) => (
         <Badge
           variant="outline"
@@ -146,7 +146,7 @@ export default function UsersPage() {
       ),
     },
     {
-      key: "date_inscription", header: "Joined", sortable: true,
+      key: "date_inscription", header: "Inscrit le", sortable: true,
       render: (u) => u.date_inscription ? new Date(u.date_inscription).toLocaleDateString() : "—",
     },
   ];
@@ -154,14 +154,14 @@ export default function UsersPage() {
   return (
     <div className="animate-fade-in">
       <PageHeader
-        title="Users"
-        description="Manage all platform users."
+        title="Utilisateurs"
+        description="Gérez tous les utilisateurs de la plateforme."
         action={
           <div className="relative">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
               className="pl-9 w-full sm:w-72"
-              placeholder="Search by name or email..."
+              placeholder="Rechercher par nom ou email..."
               value={query} onChange={(e) => setQuery(e.target.value)}
             />
           </div>
@@ -176,7 +176,7 @@ export default function UsersPage() {
             columns={columns}
             data={filtered}
             rowKey={(u) => u.id_utilisateur}
-            empty={<EmptyState icon={<UsersIcon size={26} />} title="No users found" description="Try adjusting your search." />}
+            empty={<EmptyState icon={<UsersIcon size={26} />} title="Aucun utilisateur trouvé" description="Essayez d'ajuster votre recherche." />}
             actions={(u) => (
               <div className="flex items-center justify-end gap-1">
                 <Button size="icon" variant="ghost" onClick={() => setViewing(u)}><Eye size={16} /></Button>
@@ -190,12 +190,11 @@ export default function UsersPage() {
         )}
       </div>
 
-      {/* View drawer */}
       <Sheet open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
         <SheetContent className="w-full sm:max-w-md overflow-y-auto">
           <SheetHeader>
-            <SheetTitle>User details</SheetTitle>
-            <SheetDescription>Full information about this user.</SheetDescription>
+            <SheetTitle>Détails de l'utilisateur</SheetTitle>
+            <SheetDescription>Informations complètes sur cet utilisateur.</SheetDescription>
           </SheetHeader>
           {viewing && (
             <div className="mt-6 space-y-5">
@@ -211,41 +210,40 @@ export default function UsersPage() {
               </div>
               <DetailGrid items={[
                 ["ID", viewing.id_utilisateur],
-                ["Role", viewing.role],
-                ["Phone", viewing.telephone],
-                ["Language", viewing.langue],
-                ["Account type", viewing.type_compte],
-                ["Joined", viewing.date_inscription ? new Date(viewing.date_inscription).toLocaleString() : "—"],
+                ["Rôle", viewing.role],
+                ["Téléphone", viewing.telephone],
+                ["Langue", viewing.langue],
+                ["Type de compte", viewing.type_compte],
+                ["Inscrit le", viewing.date_inscription ? new Date(viewing.date_inscription).toLocaleString() : "—"],
               ]} />
             </div>
           )}
         </SheetContent>
       </Sheet>
 
-      {/* Edit modal */}
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>Edit user</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Modifier l'utilisateur</DialogTitle></DialogHeader>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-2">
-            <Field label="First name" error={editErrors.prenom}>
+            <Field label="Prénom" error={editErrors.prenom}>
               <Input value={editForm.prenom || ""} onChange={(e) => setEditForm((f) => ({ ...f, prenom: e.target.value }))} className={editErrors.prenom ? "border-destructive" : ""} />
             </Field>
-            <Field label="Last name" error={editErrors.nom}>
+            <Field label="Nom" error={editErrors.nom}>
               <Input value={editForm.nom || ""} onChange={(e) => setEditForm((f) => ({ ...f, nom: e.target.value }))} className={editErrors.nom ? "border-destructive" : ""} />
             </Field>
             <Field label="Email" error={editErrors.email} className="sm:col-span-2">
               <Input type="email" value={editForm.email || ""} onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))} className={editErrors.email ? "border-destructive" : ""} />
             </Field>
-            <Field label="Phone">
+            <Field label="Téléphone">
               <Input value={editForm.telephone || ""} onChange={(e) => setEditForm((f) => ({ ...f, telephone: e.target.value }))} />
             </Field>
-            <Field label="Language">
+            <Field label="Langue">
               <Input value={editForm.langue || ""} onChange={(e) => setEditForm((f) => ({ ...f, langue: e.target.value }))} placeholder="fr / en / ar" />
             </Field>
-            <Field label="Account type">
+            <Field label="Type de compte">
               <Input value={editForm.type_compte || ""} onChange={(e) => setEditForm((f) => ({ ...f, type_compte: e.target.value }))} />
             </Field>
-            <Field label="Role">
+            <Field label="Rôle">
               <Select value={editForm.role || "USER"} onValueChange={(v) => setEditForm((f) => ({ ...f, role: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -256,8 +254,8 @@ export default function UsersPage() {
             </Field>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditing(null)} disabled={saving}>Cancel</Button>
-            <Button onClick={saveEdit} disabled={saving}>{saving ? <Spinner className="text-primary-foreground" /> : "Save changes"}</Button>
+            <Button variant="outline" onClick={() => setEditing(null)} disabled={saving}>Annuler</Button>
+            <Button onClick={saveEdit} disabled={saving}>{saving ? <Spinner className="text-primary-foreground" /> : "Enregistrer"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -265,8 +263,8 @@ export default function UsersPage() {
       <ConfirmDialog
         open={!!deleting}
         onOpenChange={(o) => !o && setDeleting(null)}
-        title="Delete user?"
-        description={deleting ? `This will permanently remove ${deleting.prenom || ""} ${deleting.nom || ""}.` : ""}
+        title="Supprimer cet utilisateur ?"
+        description={deleting ? `Ceci supprimera définitivement ${deleting.prenom || ""} ${deleting.nom || ""}.` : ""}
         onConfirm={confirmDelete}
         loading={delLoading}
       />
