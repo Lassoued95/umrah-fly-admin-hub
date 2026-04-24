@@ -44,9 +44,10 @@ export default function Notifications() {
   const load = async () => {
     setLoading(true);
     try {
-      const data = await api.get<Notif[]>("/notifications/");
-      setList(Array.isArray(data) ? data : []);
-    } catch (err: any) { toast.error(err?.message || "Failed to load notifications"); }
+      const data = await api.get<any>("/notifications/");
+      const arr = Array.isArray(data) ? data : (Array.isArray(data?.notifications) ? data.notifications : []);
+      setList(arr);
+    } catch (err: any) { toast.error(err?.message || "Échec du chargement des notifications"); }
     finally { setLoading(false); }
   };
 
@@ -54,9 +55,9 @@ export default function Notifications() {
 
   const send = async () => {
     const errs: Record<string, string> = {};
-    if (!form.titre) errs.titre = "Required";
-    if (!form.message) errs.message = "Required";
-    if (!form.is_global && !form.id_utilisateur) errs.id_utilisateur = "Required for targeted send";
+    if (!form.titre) errs.titre = "Requis";
+    if (!form.message) errs.message = "Requis";
+    if (!form.is_global && !form.id_utilisateur) errs.id_utilisateur = "Requis pour un envoi ciblé";
     setErrors(errs);
     if (Object.keys(errs).length) return;
     setSending(true);
@@ -69,10 +70,10 @@ export default function Notifications() {
         is_global: !!form.is_global,
         id_utilisateur: form.is_global ? null : Number(form.id_utilisateur),
       });
-      toast.success("Notification sent");
+      toast.success("Notification envoyée");
       setForm({ categorie: "Info", is_global: true });
       load();
-    } catch (err: any) { toast.error(err?.message || "Send failed"); }
+    } catch (err: any) { toast.error(err?.message || "Échec de l'envoi"); }
     finally { setSending(false); }
   };
 
@@ -81,56 +82,55 @@ export default function Notifications() {
     setDelLoading(true);
     try {
       await api.del(`/notifications/${deleting.id_notification}`);
-      toast.success("Notification deleted");
+      toast.success("Notification supprimée");
       setDeleting(null); load();
-    } catch (err: any) { toast.error(err?.message || "Delete failed"); }
+    } catch (err: any) { toast.error(err?.message || "Échec de la suppression"); }
     finally { setDelLoading(false); }
   };
 
   const columns: Column<Notif>[] = [
-    { key: "titre", header: "Title", sortable: true, render: (n) => <span className="font-medium">{n.titre || "—"}</span> },
+    { key: "titre", header: "Titre", sortable: true, render: (n) => <span className="font-medium">{n.titre || "—"}</span> },
     { key: "message", header: "Message", render: (n) => <span className="text-muted-foreground">{truncate(n.message, 60)}</span> },
-    { key: "categorie", header: "Category", sortable: true, render: (n) => n.categorie ? <Badge variant="outline">{n.categorie}</Badge> : "—" },
+    { key: "categorie", header: "Catégorie", sortable: true, render: (n) => n.categorie ? <Badge variant="outline">{n.categorie}</Badge> : "—" },
     { key: "type", header: "Type", render: (n) => n.type || "—" },
-    { key: "is_global", header: "Global", sortable: true, render: (n) => (
+    { key: "is_global", header: "Globale", sortable: true, render: (n) => (
       n.is_global
-        ? <Badge className="bg-accent text-accent-foreground hover:bg-accent">Yes</Badge>
-        : <Badge variant="outline">No</Badge>
+        ? <Badge className="bg-accent text-accent-foreground hover:bg-accent">Oui</Badge>
+        : <Badge variant="outline">Non</Badge>
     ) },
-    { key: "lue", header: "Read", sortable: true, render: (n) => (
+    { key: "lue", header: "Lue", sortable: true, render: (n) => (
       n.lue
-        ? <Badge variant="outline" className="bg-success/10 text-success border-success/30">Read</Badge>
-        : <Badge variant="outline">Unread</Badge>
+        ? <Badge variant="outline" className="bg-success/10 text-success border-success/30">Lue</Badge>
+        : <Badge variant="outline">Non lue</Badge>
     ) },
     { key: "date_envoi", header: "Date", sortable: true, render: (n) => n.date_envoi ? new Date(n.date_envoi).toLocaleDateString() : "—" },
   ];
 
   return (
     <div className="animate-fade-in">
-      <PageHeader title="Notifications" description="Send and manage in-app notifications." />
+      <PageHeader title="Notifications" description="Envoyez et gérez les notifications de l'application." />
 
-      {/* Send card */}
       <div className="bg-card rounded-xl border shadow-sm p-5 mb-6">
         <div className="flex items-center gap-2 mb-4">
           <div className="h-9 w-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
             <Send size={16} />
           </div>
           <div>
-            <h2 className="font-semibold">Send a notification</h2>
-            <p className="text-xs text-muted-foreground">Broadcast to all users or target a specific one.</p>
+            <h2 className="font-semibold">Envoyer une notification</h2>
+            <p className="text-xs text-muted-foreground">Diffusez à tous les utilisateurs ou ciblez un utilisateur précis.</p>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <Field label="Title *" error={errors.titre}>
+          <Field label="Titre *" error={errors.titre}>
             <Input value={form.titre || ""} onChange={(e) => setForm((f: any) => ({ ...f, titre: e.target.value }))} className={errors.titre ? "border-destructive" : ""} />
           </Field>
-          <Field label="Category">
+          <Field label="Catégorie">
             <Select value={form.categorie || "Info"} onValueChange={(v) => setForm((f: any) => ({ ...f, categorie: v }))}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="Social">Social</SelectItem>
                 <SelectItem value="Info">Info</SelectItem>
-                <SelectItem value="Alert">Alert</SelectItem>
+                <SelectItem value="Alert">Alerte</SelectItem>
                 <SelectItem value="Rappel">Rappel</SelectItem>
               </SelectContent>
             </Select>
@@ -138,27 +138,27 @@ export default function Notifications() {
           <Field label="Message *" error={errors.message} className="md:col-span-2">
             <Textarea rows={3} value={form.message || ""} onChange={(e) => setForm((f: any) => ({ ...f, message: e.target.value }))} className={errors.message ? "border-destructive" : ""} />
           </Field>
-          <Field label="Type (optional)">
+          <Field label="Type (optionnel)">
             <Input value={form.type || ""} onChange={(e) => setForm((f: any) => ({ ...f, type: e.target.value }))} />
           </Field>
           <div className="flex items-end gap-3 pb-1">
             <div className="flex items-center gap-3 px-3 py-2 rounded-md border bg-muted/40 flex-1">
               <Switch checked={!!form.is_global} onCheckedChange={(v) => setForm((f: any) => ({ ...f, is_global: v }))} />
               <div className="text-sm">
-                <div className="font-medium">Send to all users</div>
-                <div className="text-xs text-muted-foreground">Toggle off to target a single user</div>
+                <div className="font-medium">Envoyer à tous</div>
+                <div className="text-xs text-muted-foreground">Désactivez pour cibler un utilisateur</div>
               </div>
             </div>
           </div>
           {!form.is_global && (
-            <Field label="User ID *" error={errors.id_utilisateur} className="md:col-span-2">
+            <Field label="ID utilisateur *" error={errors.id_utilisateur} className="md:col-span-2">
               <Input type="number" value={form.id_utilisateur ?? ""} onChange={(e) => setForm((f: any) => ({ ...f, id_utilisateur: e.target.value }))} className={errors.id_utilisateur ? "border-destructive" : ""} />
             </Field>
           )}
         </div>
         <div className="flex justify-end mt-4">
           <Button onClick={send} disabled={sending}>
-            {sending ? <Spinner className="text-primary-foreground" /> : (<><Send size={14} className="mr-1.5" /> Send notification</>)}
+            {sending ? <Spinner className="text-primary-foreground" /> : (<><Send size={14} className="mr-1.5" /> Envoyer</>)}
           </Button>
         </div>
       </div>
@@ -167,7 +167,7 @@ export default function Notifications() {
         {loading ? <PageSpinner /> : (
           <DataTable
             columns={columns} data={list} rowKey={(n) => n.id_notification}
-            empty={<EmptyState icon={<Bell size={26} />} title="No notifications" description="Sent notifications will appear here." />}
+            empty={<EmptyState icon={<Bell size={26} />} title="Aucune notification" description="Les notifications envoyées apparaîtront ici." />}
             actions={(n) => (
               <div className="flex items-center justify-end gap-1">
                 <Button size="icon" variant="ghost" onClick={() => setViewing(n)}><Eye size={16} /></Button>
@@ -188,12 +188,12 @@ export default function Notifications() {
               <div className="p-4 bg-muted/40 rounded-lg text-sm leading-relaxed">{viewing.message}</div>
               <DetailGrid items={[
                 ["ID", viewing.id_notification],
-                ["Category", viewing.categorie],
+                ["Catégorie", viewing.categorie],
                 ["Type", viewing.type],
-                ["Global", viewing.is_global ? "Yes" : "No"],
-                ["Read", viewing.lue ? "Read" : "Unread"],
-                ["User ID", viewing.id_utilisateur],
-                ["Sent", viewing.date_envoi ? new Date(viewing.date_envoi).toLocaleString() : "—"],
+                ["Globale", viewing.is_global ? "Oui" : "Non"],
+                ["Lue", viewing.lue ? "Lue" : "Non lue"],
+                ["ID utilisateur", viewing.id_utilisateur],
+                ["Envoyée le", viewing.date_envoi ? new Date(viewing.date_envoi).toLocaleString() : "—"],
               ]} />
             </div>
           )}
@@ -202,7 +202,7 @@ export default function Notifications() {
 
       <ConfirmDialog
         open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}
-        title="Delete notification?" description="This action cannot be undone."
+        title="Supprimer cette notification ?" description="Cette action est irréversible."
         onConfirm={confirmDelete} loading={delLoading}
       />
     </div>

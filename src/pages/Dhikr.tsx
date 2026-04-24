@@ -15,10 +15,11 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Field, DetailGrid } from "./Users";
 import { cn } from "@/lib/utils";
 
-type Planning = { id_planning: number; type_evenement?: string; date?: string };
+type Planning = { id_planning: number; titre?: string; type_evenement?: string; date?: string };
 type Dhikr = { id_dhikr: number; nom?: string; ordre?: number; description?: string; repetitions?: number; id_planning?: number };
 
 const truncate = (s?: string, n = 60) => !s ? "—" : s.length > n ? s.slice(0, n) + "…" : s;
+const planLabel = (p: Planning) => p.titre || p.type_evenement || `Planning #${p.id_planning}`;
 
 export default function DhikrPage() {
   const [plannings, setPlannings] = useState<Planning[]>([]);
@@ -47,7 +48,7 @@ export default function DhikrPage() {
         const arr = Array.isArray(data) ? data : [];
         setPlannings(arr);
         if (arr.length) setSelected(arr[0]);
-      } catch (err: any) { toast.error(err?.message || "Failed to load plannings"); }
+      } catch (err: any) { toast.error(err?.message || "Échec du chargement des plannings"); }
       finally { setPlanLoading(false); }
     })();
   }, []);
@@ -57,7 +58,7 @@ export default function DhikrPage() {
     try {
       const data = await api.get<Dhikr[]>(`/dhikr/${id}`);
       setList(Array.isArray(data) ? data : []);
-    } catch (err: any) { setList([]); toast.error(err?.message || "Failed to load dhikr"); }
+    } catch (err: any) { setList([]); toast.error(err?.message || "Échec du chargement des dhikrs"); }
     finally { setLoading(false); }
   };
 
@@ -88,9 +89,9 @@ export default function DhikrPage() {
   const submit = async () => {
     if (!selected) return;
     const errs: Record<string, string> = {};
-    if (!form.nom) errs.nom = "Required";
-    if (form.ordre === undefined || form.ordre === "") errs.ordre = "Required";
-    if (!form.repetitions) errs.repetitions = "Required";
+    if (!form.nom) errs.nom = "Requis";
+    if (form.ordre === undefined || form.ordre === "") errs.ordre = "Requis";
+    if (!form.repetitions) errs.repetitions = "Requis";
     setErrors(errs);
     if (Object.keys(errs).length) return;
     setSaving(true);
@@ -103,15 +104,15 @@ export default function DhikrPage() {
       };
       if (editing) {
         await api.put(`/dhikr/${editing.id_dhikr}`, body);
-        toast.success("Dhikr updated");
+        toast.success("Dhikr mis à jour");
         setEditing(null);
       } else {
         await api.post(`/dhikr/`, { ...body, id_planning: selected.id_planning });
-        toast.success("Dhikr created");
+        toast.success("Dhikr créé");
         setAdding(false);
       }
       setForm({}); load(selected.id_planning);
-    } catch (err: any) { toast.error(err?.message || "Save failed"); }
+    } catch (err: any) { toast.error(err?.message || "Échec de l'enregistrement"); }
     finally { setSaving(false); }
   };
 
@@ -120,18 +121,18 @@ export default function DhikrPage() {
     setDelLoading(true);
     try {
       await api.del(`/dhikr/${deleting.id_dhikr}`);
-      toast.success("Dhikr deleted");
+      toast.success("Dhikr supprimé");
       setDeleting(null);
       load(selected.id_planning);
-    } catch (err: any) { toast.error(err?.message || "Delete failed"); }
+    } catch (err: any) { toast.error(err?.message || "Échec de la suppression"); }
     finally { setDelLoading(false); }
   };
 
   const columns: Column<Dhikr>[] = [
     { key: "ordre", header: "#", sortable: true, className: "w-14", render: (d) => <span className="font-mono text-sm">{d.ordre ?? "—"}</span> },
-    { key: "nom", header: "Name", sortable: true, render: (d) => <span className="font-medium">{d.nom || "—"}</span> },
+    { key: "nom", header: "Nom", sortable: true, render: (d) => <span className="font-medium">{d.nom || "—"}</span> },
     { key: "description", header: "Description", render: (d) => <span className="text-muted-foreground">{truncate(d.description, 60)}</span> },
-    { key: "repetitions", header: "Reps", sortable: true, render: (d) => (
+    { key: "repetitions", header: "Répétitions", sortable: true, render: (d) => (
       <span className="inline-flex items-center justify-center min-w-[2rem] px-2 py-0.5 rounded-full bg-accent-soft text-accent-foreground text-xs font-semibold">{d.repetitions ?? 0}</span>
     ) },
   ];
@@ -140,7 +141,7 @@ export default function DhikrPage() {
 
   return (
     <div className="animate-fade-in">
-      <PageHeader title="Dhikr" description="Remembrance phrases per planning." />
+      <PageHeader title="Dhikr" description="Phrases de rappel par planning." />
 
       <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-4">
         <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
@@ -148,14 +149,14 @@ export default function DhikrPage() {
             <CalendarRange size={16} className="text-primary" /> Plannings
           </div>
           <div className="max-h-[70vh] overflow-y-auto">
-            {planLoading ? <PageSpinner /> : plannings.length === 0 ? <EmptyState title="No plannings" /> :
+            {planLoading ? <PageSpinner /> : plannings.length === 0 ? <EmptyState title="Aucun planning" /> :
               plannings.map((p) => (
                 <button key={p.id_planning} onClick={() => setSelected(p)}
                   className={cn(
                     "w-full text-left px-4 py-3 border-b last:border-0 hover:bg-muted/50 transition-colors",
                     selected?.id_planning === p.id_planning && "bg-accent-soft border-l-4 border-l-accent"
                   )}>
-                  <div className="font-medium text-sm">{p.type_evenement || `Planning #${p.id_planning}`}</div>
+                  <div className="font-medium text-sm">{planLabel(p)}</div>
                   <div className="text-xs text-muted-foreground mt-0.5">{p.date ? new Date(p.date).toLocaleDateString() : `ID ${p.id_planning}`}</div>
                 </button>
               ))}
@@ -165,18 +166,18 @@ export default function DhikrPage() {
         <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
           <div className="px-4 py-3 border-b flex items-center justify-between gap-2">
             <div className="font-medium text-sm">
-              {selected ? `Dhikrs — ${selected.type_evenement || `#${selected.id_planning}`}` : "Select a planning"}
+              {selected ? `Dhikrs — ${planLabel(selected)}` : "Sélectionnez un planning"}
             </div>
             {selected && (
-              <Button size="sm" onClick={openAdd}><Plus size={14} className="mr-1" /> Add Dhikr</Button>
+              <Button size="sm" onClick={openAdd}><Plus size={14} className="mr-1" /> Ajouter un dhikr</Button>
             )}
           </div>
           {!selected ? (
-            <EmptyState title="Choose a planning" />
+            <EmptyState title="Choisissez un planning" />
           ) : loading ? <PageSpinner /> : (
             <DataTable
               columns={columns} data={list} rowKey={(d) => d.id_dhikr}
-              empty={<EmptyState icon={<Sparkles size={26} />} title="No dhikrs yet" />}
+              empty={<EmptyState icon={<Sparkles size={26} />} title="Aucun dhikr" />}
               actions={(d) => (
                 <div className="flex items-center justify-end gap-1">
                   <Button size="icon" variant="ghost" onClick={() => openView(d)}><Eye size={16} /></Button>
@@ -198,9 +199,9 @@ export default function DhikrPage() {
             <div className="mt-6 space-y-4">
               <DetailGrid items={[
                 ["ID", viewing.id_dhikr],
-                ["Order", viewing.ordre],
-                ["Repetitions", viewing.repetitions],
-                ["Planning ID", viewing.id_planning],
+                ["Ordre", viewing.ordre],
+                ["Répétitions", viewing.repetitions],
+                ["ID Planning", viewing.id_planning],
               ]} />
               <div>
                 <div className="text-xs text-muted-foreground mb-2">Description</div>
@@ -213,15 +214,15 @@ export default function DhikrPage() {
 
       <Dialog open={isModalOpen} onOpenChange={(o) => { if (!o) { setAdding(false); setEditing(null); } }}>
         <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>{editing ? "Edit dhikr" : "Add a dhikr"}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editing ? "Modifier le dhikr" : "Ajouter un dhikr"}</DialogTitle></DialogHeader>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-2">
-            <Field label="Name *" error={errors.nom} className="sm:col-span-2">
+            <Field label="Nom *" error={errors.nom} className="sm:col-span-2">
               <Input value={form.nom || ""} onChange={(e) => setForm((f: any) => ({ ...f, nom: e.target.value }))} className={errors.nom ? "border-destructive" : ""} />
             </Field>
-            <Field label="Order *" error={errors.ordre}>
+            <Field label="Ordre *" error={errors.ordre}>
               <Input type="number" value={form.ordre ?? ""} onChange={(e) => setForm((f: any) => ({ ...f, ordre: e.target.value }))} className={errors.ordre ? "border-destructive" : ""} />
             </Field>
-            <Field label="Repetitions *" error={errors.repetitions}>
+            <Field label="Répétitions *" error={errors.repetitions}>
               <Input type="number" value={form.repetitions ?? ""} onChange={(e) => setForm((f: any) => ({ ...f, repetitions: e.target.value }))} className={errors.repetitions ? "border-destructive" : ""} />
             </Field>
             <Field label="Description" className="sm:col-span-2">
@@ -229,20 +230,20 @@ export default function DhikrPage() {
             </Field>
             {!editing && (
               <Field label="Planning" className="sm:col-span-2">
-                <Input value={selected ? `${selected.type_evenement || ""} (#${selected.id_planning})` : ""} disabled />
+                <Input value={selected ? `${planLabel(selected)} (#${selected.id_planning})` : ""} disabled />
               </Field>
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setAdding(false); setEditing(null); }} disabled={saving}>Cancel</Button>
-            <Button onClick={submit} disabled={saving}>{saving ? <Spinner className="text-primary-foreground" /> : (editing ? "Save changes" : "Create")}</Button>
+            <Button variant="outline" onClick={() => { setAdding(false); setEditing(null); }} disabled={saving}>Annuler</Button>
+            <Button onClick={submit} disabled={saving}>{saving ? <Spinner className="text-primary-foreground" /> : (editing ? "Enregistrer" : "Créer")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <ConfirmDialog
         open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}
-        title="Delete dhikr?" description={deleting ? `This will remove "${deleting.nom}".` : ""}
+        title="Supprimer ce dhikr ?" description={deleting ? `Ceci supprimera « ${deleting.nom} ».` : ""}
         onConfirm={confirmDelete} loading={delLoading}
       />
     </div>

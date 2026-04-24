@@ -9,6 +9,7 @@ import AppLayout from "@/components/AppLayout";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
+import Plannings from "./pages/Plannings";
 import Duas from "./pages/Duas";
 import Rituals from "./pages/Rituals";
 import Dhikr from "./pages/Dhikr";
@@ -34,6 +35,7 @@ const App = () => (
             <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/users" element={<Users />} />
+              <Route path="/plannings" element={<Plannings />} />
               <Route path="/duas" element={<Duas />} />
               <Route path="/rituals" element={<Rituals />} />
               <Route path="/dhikr" element={<Dhikr />} />

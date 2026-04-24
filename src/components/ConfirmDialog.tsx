@@ -4,7 +4,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export function ConfirmDialog({
-  open, onOpenChange, title = "Are you sure?", description, confirmText = "Delete", onConfirm, loading,
+  open, onOpenChange, title = "Êtes-vous sûr ?", description, confirmText = "Supprimer", onConfirm, loading,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -22,13 +22,13 @@ export function ConfirmDialog({
           {description && <AlertDialogDescription>{description}</AlertDialogDescription>}
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={loading}>Annuler</AlertDialogCancel>
           <AlertDialogAction
             disabled={loading}
             onClick={(e) => { e.preventDefault(); onConfirm(); }}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            {loading ? "Working..." : confirmText}
+            {loading ? "En cours..." : confirmText}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
