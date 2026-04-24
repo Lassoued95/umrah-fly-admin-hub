@@ -43,6 +43,22 @@ async function request<T = any>(path: string, options: RequestInit = {}): Promis
   return data as T;
 }
 
+async function requestForm<T = any>(path: string, method: string, form: FormData): Promise<T> {
+  const token = getToken();
+  const headers: Record<string, string> = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const res = await fetch(`${BASE_URL}${path}`, { method, headers, body: form });
+  let data: any = null;
+  const text = await res.text();
+  if (text) { try { data = JSON.parse(text); } catch { data = text; } }
+  if (!res.ok) {
+    const msg = (data && (data.message || data.error || data.detail)) || `Request failed (${res.status})`;
+    if (res.status === 401) clearToken();
+    throw new ApiError(msg, res.status, data);
+  }
+  return data as T;
+}
+
 export const api = {
   get: <T = any>(path: string) => request<T>(path),
   post: <T = any>(path: string, body?: any) =>
@@ -50,4 +66,8 @@ export const api = {
   put: <T = any>(path: string, body?: any) =>
     request<T>(path, { method: "PUT", body: JSON.stringify(body ?? {}) }),
   del: <T = any>(path: string) => request<T>(path, { method: "DELETE" }),
+  postForm: <T = any>(path: string, form: FormData) => requestForm<T>(path, "POST", form),
+  putForm: <T = any>(path: string, form: FormData) => requestForm<T>(path, "PUT", form),
 };
+
+export const BASE = BASE_URL;
