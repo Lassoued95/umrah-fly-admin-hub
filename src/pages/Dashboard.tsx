@@ -25,8 +25,13 @@ export default function Dashboard() {
           api.get<any[]>("/planning/"),
         ]);
         if (!mounted) return;
-        const num = (r: PromiseSettledResult<any[]>) =>
-          r.status === "fulfilled" ? (Array.isArray(r.value) ? r.value.length : (r.value?.length ?? 0)) : 0;
+        const num = (r: PromiseSettledResult<any>) => {
+          if (r.status !== "fulfilled") return 0;
+          const v: any = r.value;
+          if (Array.isArray(v)) return v.length;
+          if (v && typeof v === "object" && Array.isArray(v.data)) return v.data.length;
+          return 0;
+        };
         setStats([
           { label: "Total Users", value: num(users), icon: Users, tint: "bg-primary/10 text-primary" },
           { label: "Total Duas", value: num(duas), icon: BookOpen, tint: "bg-accent/20 text-accent-foreground" },
