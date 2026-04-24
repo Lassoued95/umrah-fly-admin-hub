@@ -29,7 +29,12 @@ export default function Login() {
 
     setLoading(true);
     try {
-      await api.post("/utilisateurs/login-otp", { email, motDePasse: password });
+      await api.post("/utilisateurs/login-otp", {
+        email: email.trim(),
+        password,
+        mot_de_passe: password,
+        motDePasse: password,
+      });
       toast.success("OTP sent to your email");
       setStep(2);
     } catch (err) {
