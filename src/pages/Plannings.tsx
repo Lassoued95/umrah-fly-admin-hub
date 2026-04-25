@@ -76,17 +76,12 @@ export default function Plannings() {
     return payload;
   };
 
-  const buildFormData = () => {
-    const fd = new FormData();
-    Object.entries(buildPayload()).forEach(([key, value]) => fd.append(key, value));
-    if (form.image) fd.append("image", form.image);
-    return fd;
-  };
+  const buildLegacyPayload = () => ({
+    titre: form.titre || "",
+    ...(form.description !== undefined && { description: form.description || "" }),
+  });
 
-  const isUploadFolderError = (err: any) => {
-    const raw = `${err?.message || ""} ${typeof err?.data === "string" ? err.data : JSON.stringify(err?.data || {})}`;
-    return err?.status === 500 && (raw.includes("ENOENT") || raw.includes("uploads/images"));
-  };
+  const isPlanningCreateError = (err: any) => err?.status === 500 && `${err?.message || ""}`.includes("création planning");
 
   const submit = async () => {
     const errs: Record<string, string> = {};
@@ -96,30 +91,22 @@ export default function Plannings() {
     setSaving(true);
     try {
       if (editing) {
-        if (form.image) {
-          try {
-            await api.putForm(`/plannings/${editing.id_planning}`, buildFormData());
-          } catch (err: any) {
-            if (!isUploadFolderError(err)) throw err;
-            await api.put(`/plannings/${editing.id_planning}`, buildPayload());
-            toast.warning("Image ignorée : dossier d'upload manquant côté API");
-          }
-        } else {
+        try {
           await api.put(`/plannings/${editing.id_planning}`, buildPayload());
+        } catch (err: any) {
+          if (!isPlanningCreateError(err)) throw err;
+          await api.put(`/plannings/${editing.id_planning}`, buildLegacyPayload());
+          toast.warning("Date, type et image ignorés : l'API planning ne les accepte pas encore");
         }
         toast.success("Planning mis à jour");
         setEditing(null);
       } else {
-        if (form.image) {
-          try {
-            await api.postForm("/plannings/", buildFormData());
-          } catch (err: any) {
-            if (!isUploadFolderError(err)) throw err;
-            await api.post("/plannings/", buildPayload());
-            toast.warning("Image ignorée : dossier d'upload manquant côté API");
-          }
-        } else {
+        try {
           await api.post("/plannings/", buildPayload());
+        } catch (err: any) {
+          if (!isPlanningCreateError(err)) throw err;
+          await api.post("/plannings/", buildLegacyPayload());
+          toast.warning("Date, type et image ignorés : l'API planning ne les accepte pas encore");
         }
         toast.success("Planning créé");
         setAdding(false);
