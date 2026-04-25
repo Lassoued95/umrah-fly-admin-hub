@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Eye, Pencil, Trash2, Plus, CalendarRange, ImageIcon } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, BASE } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
 import { PageSpinner, Spinner } from "@/components/Spinner";
 import { DataTable, Column } from "@/components/DataTable";
@@ -21,7 +21,7 @@ type Planning = {
   image?: string | null;
 };
 
-const API_ORIGIN = "https://api.umrahfly.me";
+const API_ORIGIN = BASE.replace(/\/api\/?$/, "");
 const imageUrl = (p?: string | null) =>
   !p ? null : p.startsWith("http") ? p : `${API_ORIGIN}${p}`;
 
