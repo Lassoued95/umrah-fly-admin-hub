@@ -68,20 +68,26 @@ export default function Plannings() {
     setErrors({});
   };
 
-  const buildPayload = () => {
-    const payload: Record<string, string> = { titre: form.titre || "" };
-    if (form.description !== undefined) payload.description = form.description || "";
-    if (form.type_evenement !== undefined) payload.type_evenement = form.type_evenement || "";
-    if (form.date_heure) payload.date_heure = new Date(form.date_heure).toISOString();
-    return payload;
+  const buildFormData = () => {
+    const fd = new FormData();
+    fd.append("titre", form.titre || "");
+    fd.append("description", form.description || "");
+    fd.append("type_evenement", form.type_evenement || "");
+    if (form.date_heure) fd.append("date_heure", new Date(form.date_heure).toISOString());
+    else fd.append("date_heure", "");
+    if (form.image) fd.append("image", form.image);
+    return fd;
   };
 
-  const buildLegacyPayload = () => ({
-    titre: form.titre || "",
-    ...(form.description !== undefined && { description: form.description || "" }),
-  });
-
-  const isPlanningCreateError = (err: any) => err?.status === 500 && `${err?.message || ""}`.includes("création planning");
+  const buildJsonPayload = () => {
+    const payload: Record<string, any> = {
+      titre: form.titre || "",
+      description: form.description || "",
+      type_evenement: form.type_evenement || "",
+      date_heure: form.date_heure ? new Date(form.date_heure).toISOString() : null,
+    };
+    return payload;
+  };
 
   const submit = async () => {
     const errs: Record<string, string> = {};
@@ -90,23 +96,23 @@ export default function Plannings() {
     if (Object.keys(errs).length) return;
     setSaving(true);
     try {
+      // Always use multipart/form-data — backend uses multer.single("image")
+      // which parses text fields from form-data, not JSON.
       if (editing) {
         try {
-          await api.put(`/plannings/${editing.id_planning}`, buildPayload());
+          await api.putForm(`/plannings/${editing.id_planning}`, buildFormData());
         } catch (err: any) {
-          if (!isPlanningCreateError(err)) throw err;
-          await api.put(`/plannings/${editing.id_planning}`, buildLegacyPayload());
-          toast.warning("Date, type et image ignorés : l'API planning ne les accepte pas encore");
+          if (err?.status !== 500) throw err;
+          await api.put(`/plannings/${editing.id_planning}`, buildJsonPayload());
         }
         toast.success("Planning mis à jour");
         setEditing(null);
       } else {
         try {
-          await api.post("/plannings/", buildPayload());
+          await api.postForm("/plannings/", buildFormData());
         } catch (err: any) {
-          if (!isPlanningCreateError(err)) throw err;
-          await api.post("/plannings/", buildLegacyPayload());
-          toast.warning("Date, type et image ignorés : l'API planning ne les accepte pas encore");
+          if (err?.status !== 500) throw err;
+          await api.post("/plannings/", buildJsonPayload());
         }
         toast.success("Planning créé");
         setAdding(false);
