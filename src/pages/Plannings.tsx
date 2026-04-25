@@ -58,7 +58,13 @@ export default function Plannings() {
   const openAdd = () => { setForm({}); setErrors({}); setAdding(true); };
   const openEdit = (p: Planning) => {
     setEditing(p);
-    setForm({ titre: p.titre, description: p.description, image: null });
+    setForm({
+      titre: p.titre,
+      description: p.description,
+      image: null,
+      date_heure: p.date_heure ? new Date(p.date_heure).toISOString().slice(0, 16) : "",
+      type_evenement: p.type_evenement || "",
+    });
     setErrors({});
   };
 
