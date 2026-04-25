@@ -21,7 +21,7 @@ type Planning = {
   image?: string | null;
 };
 
-const API_ORIGIN = "http://localhost:5000";
+const API_ORIGIN = "https://api.umrahfly.me";
 const imageUrl = (p?: string | null) =>
   !p ? null : p.startsWith("http") ? p : `${API_ORIGIN}${p}`;
 
