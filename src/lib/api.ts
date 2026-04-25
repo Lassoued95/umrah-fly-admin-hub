@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:5000/api";
+const BASE_URL = "https://api.umrahfly.me/api";
 
 export class ApiError extends Error {
   status: number;
