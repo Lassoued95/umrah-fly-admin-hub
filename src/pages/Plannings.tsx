@@ -44,7 +44,7 @@ export default function Plannings() {
   const load = async () => {
     setLoading(true);
     try {
-      const data = await api.get<Planning[]>("/planning/");
+      const data = await api.get<Planning[]>("/plannings/");
       setList(Array.isArray(data) ? data : []);
     } catch (err: any) {
       toast.error(err?.message || "Échec du chargement des plannings");
@@ -73,11 +73,11 @@ export default function Plannings() {
       if (form.image) fd.append("image", form.image);
 
       if (editing) {
-        await api.putForm(`/planning/${editing.id_planning}`, fd);
+        await api.putForm(`/plannings/${editing.id_planning}`, fd);
         toast.success("Planning mis à jour");
         setEditing(null);
       } else {
-        await api.postForm("/planning/", fd);
+        await api.postForm("/plannings/", fd);
         toast.success("Planning créé");
         setAdding(false);
       }
@@ -91,7 +91,7 @@ export default function Plannings() {
     if (!deleting) return;
     setDelLoading(true);
     try {
-      await api.del(`/planning/${deleting.id_planning}`);
+      await api.del(`/plannings/${deleting.id_planning}`);
       toast.success("Planning supprimé");
       setDeleting(null); load();
     } catch (err: any) {
