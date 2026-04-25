@@ -68,6 +68,26 @@ export default function Plannings() {
     setErrors({});
   };
 
+  const buildPayload = () => {
+    const payload: Record<string, string> = { titre: form.titre || "" };
+    if (form.description !== undefined) payload.description = form.description || "";
+    if (form.type_evenement !== undefined) payload.type_evenement = form.type_evenement || "";
+    if (form.date_heure) payload.date_heure = new Date(form.date_heure).toISOString();
+    return payload;
+  };
+
+  const buildFormData = () => {
+    const fd = new FormData();
+    Object.entries(buildPayload()).forEach(([key, value]) => fd.append(key, value));
+    if (form.image) fd.append("image", form.image);
+    return fd;
+  };
+
+  const isUploadFolderError = (err: any) => {
+    const raw = `${err?.message || ""} ${typeof err?.data === "string" ? err.data : JSON.stringify(err?.data || {})}`;
+    return err?.status === 500 && (raw.includes("ENOENT") || raw.includes("uploads/images"));
+  };
+
   const submit = async () => {
     const errs: Record<string, string> = {};
     if (!form.titre?.trim()) errs.titre = "Requis";
@@ -75,19 +95,32 @@ export default function Plannings() {
     if (Object.keys(errs).length) return;
     setSaving(true);
     try {
-      const fd = new FormData();
-      fd.append("titre", form.titre || "");
-      if (form.description !== undefined) fd.append("description", form.description || "");
-      if (form.type_evenement !== undefined) fd.append("type_evenement", form.type_evenement || "");
-      if (form.date_heure) fd.append("date_heure", new Date(form.date_heure).toISOString());
-      if (form.image) fd.append("image", form.image);
-
       if (editing) {
-        await api.putForm(`/plannings/${editing.id_planning}`, fd);
+        if (form.image) {
+          try {
+            await api.putForm(`/plannings/${editing.id_planning}`, buildFormData());
+          } catch (err: any) {
+            if (!isUploadFolderError(err)) throw err;
+            await api.put(`/plannings/${editing.id_planning}`, buildPayload());
+            toast.warning("Image ignorée : dossier d'upload manquant côté API");
+          }
+        } else {
+          await api.put(`/plannings/${editing.id_planning}`, buildPayload());
+        }
         toast.success("Planning mis à jour");
         setEditing(null);
       } else {
-        await api.postForm("/plannings/", fd);
+        if (form.image) {
+          try {
+            await api.postForm("/plannings/", buildFormData());
+          } catch (err: any) {
+            if (!isUploadFolderError(err)) throw err;
+            await api.post("/plannings/", buildPayload());
+            toast.warning("Image ignorée : dossier d'upload manquant côté API");
+          }
+        } else {
+          await api.post("/plannings/", buildPayload());
+        }
         toast.success("Planning créé");
         setAdding(false);
       }
