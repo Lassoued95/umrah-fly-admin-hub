@@ -19,6 +19,8 @@ type Planning = {
   titre?: string;
   description?: string;
   image?: string | null;
+  date_heure?: string | null;
+  type_evenement?: string | null;
 };
 
 const API_ORIGIN = "https://api.umrahfly.me";
@@ -34,7 +36,7 @@ export default function Plannings() {
   const [viewing, setViewing] = useState<Planning | null>(null);
   const [editing, setEditing] = useState<Planning | null>(null);
   const [adding, setAdding] = useState(false);
-  const [form, setForm] = useState<{ titre?: string; description?: string; image?: File | null }>({});
+  const [form, setForm] = useState<{ titre?: string; description?: string; image?: File | null; date_heure?: string; type_evenement?: string }>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
@@ -56,7 +58,13 @@ export default function Plannings() {
   const openAdd = () => { setForm({}); setErrors({}); setAdding(true); };
   const openEdit = (p: Planning) => {
     setEditing(p);
-    setForm({ titre: p.titre, description: p.description, image: null });
+    setForm({
+      titre: p.titre,
+      description: p.description,
+      image: null,
+      date_heure: p.date_heure ? new Date(p.date_heure).toISOString().slice(0, 16) : "",
+      type_evenement: p.type_evenement || "",
+    });
     setErrors({});
   };
 
@@ -70,6 +78,8 @@ export default function Plannings() {
       const fd = new FormData();
       fd.append("titre", form.titre || "");
       if (form.description !== undefined) fd.append("description", form.description || "");
+      if (form.type_evenement !== undefined) fd.append("type_evenement", form.type_evenement || "");
+      if (form.date_heure) fd.append("date_heure", new Date(form.date_heure).toISOString());
       if (form.image) fd.append("image", form.image);
 
       if (editing) {
@@ -154,6 +164,8 @@ export default function Plannings() {
               <DetailGrid items={[
                 ["ID", viewing.id_planning],
                 ["Titre", viewing.titre],
+                ["Type d'événement", viewing.type_evenement || "—"],
+                ["Date & heure", viewing.date_heure ? new Date(viewing.date_heure).toLocaleString("fr-FR") : "—"],
               ]} />
               <div>
                 <div className="text-xs text-muted-foreground mb-2">Description</div>
@@ -185,6 +197,22 @@ export default function Plannings() {
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               />
             </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Date & heure">
+                <Input
+                  type="datetime-local"
+                  value={form.date_heure || ""}
+                  onChange={(e) => setForm((f) => ({ ...f, date_heure: e.target.value }))}
+                />
+              </Field>
+              <Field label="Type d'événement">
+                <Input
+                  value={form.type_evenement || ""}
+                  placeholder="ex: Omra, Hajj…"
+                  onChange={(e) => setForm((f) => ({ ...f, type_evenement: e.target.value }))}
+                />
+              </Field>
+            </div>
             <Field label="Image (jpg, png, webp — max 5 Mo)">
               <Input
                 type="file"
