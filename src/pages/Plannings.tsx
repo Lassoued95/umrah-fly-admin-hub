@@ -164,6 +164,8 @@ export default function Plannings() {
               <DetailGrid items={[
                 ["ID", viewing.id_planning],
                 ["Titre", viewing.titre],
+                ["Type d'événement", viewing.type_evenement || "—"],
+                ["Date & heure", viewing.date_heure ? new Date(viewing.date_heure).toLocaleString("fr-FR") : "—"],
               ]} />
               <div>
                 <div className="text-xs text-muted-foreground mb-2">Description</div>
