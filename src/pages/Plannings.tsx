@@ -78,6 +78,8 @@ export default function Plannings() {
       const fd = new FormData();
       fd.append("titre", form.titre || "");
       if (form.description !== undefined) fd.append("description", form.description || "");
+      if (form.type_evenement !== undefined) fd.append("type_evenement", form.type_evenement || "");
+      if (form.date_heure) fd.append("date_heure", new Date(form.date_heure).toISOString());
       if (form.image) fd.append("image", form.image);
 
       if (editing) {
