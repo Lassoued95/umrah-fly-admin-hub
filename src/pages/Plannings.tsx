@@ -19,6 +19,8 @@ type Planning = {
   titre?: string;
   description?: string;
   image?: string | null;
+  date_heure?: string | null;
+  type_evenement?: string | null;
 };
 
 const API_ORIGIN = "https://api.umrahfly.me";
