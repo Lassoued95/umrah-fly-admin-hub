@@ -31,9 +31,7 @@ export default function Login() {
     try {
       await api.post("/utilisateurs/login-otp", {
         email: email.trim(),
-        password,
         mot_de_passe: password,
-        motDePasse: password,
       });
       toast.success("Code OTP envoyé par email");
       setStep(2);
