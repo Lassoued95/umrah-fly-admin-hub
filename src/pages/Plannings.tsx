@@ -36,7 +36,7 @@ export default function Plannings() {
   const [viewing, setViewing] = useState<Planning | null>(null);
   const [editing, setEditing] = useState<Planning | null>(null);
   const [adding, setAdding] = useState(false);
-  const [form, setForm] = useState<{ titre?: string; description?: string; image?: File | null }>({});
+  const [form, setForm] = useState<{ titre?: string; description?: string; image?: File | null; date_heure?: string; type_evenement?: string }>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
