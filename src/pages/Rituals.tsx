@@ -385,10 +385,10 @@ export default function Rituals() {
         onOpenChange={(o) => !o && setDeletingRit(null)}
         title="Supprimer ce rituel ?"
         description={`"${deletingRit?.nom ?? ""}" sera supprimé définitivement.`}
-        confirmLabel="Supprimer"
+        confirmText="Supprimer"
         loading={deletingRitLoading}
         onConfirm={confirmDeleteRituel}
-        destructive
+
       />
 
       <ConfirmDialog
@@ -396,10 +396,10 @@ export default function Rituals() {
         onOpenChange={(o) => !o && setDeletingEtape(null)}
         title="Supprimer cette étape ?"
         description={`"${deletingEtape?.titre ?? ""}" sera supprimée définitivement.`}
-        confirmLabel="Supprimer"
+        confirmText="Supprimer"
         loading={deletingEtapeLoading}
         onConfirm={confirmDeleteEtape}
-        destructive
+
       />
     </div>
   );
