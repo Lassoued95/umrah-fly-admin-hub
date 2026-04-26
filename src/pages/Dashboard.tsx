@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Users, BookOpen, CalendarRange, TrendingUp } from "lucide-react";
+import { Users, BookOpen, CalendarRange, Landmark, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
@@ -12,6 +12,7 @@ export default function Dashboard() {
     { label: "Utilisateurs", value: null, icon: Users, tint: "bg-primary/10 text-primary" },
     { label: "Douaas", value: null, icon: BookOpen, tint: "bg-accent/15 text-accent-foreground" },
     { label: "Plannings", value: null, icon: CalendarRange, tint: "bg-success/10 text-success" },
+    { label: "Rituels", value: null, icon: Landmark, tint: "bg-secondary/30 text-secondary-foreground" },
   ]);
   const [loading, setLoading] = useState(true);
 
@@ -32,10 +33,22 @@ export default function Dashboard() {
           if (v && typeof v === "object" && Array.isArray(v.data)) return v.data.length;
           return 0;
         };
+
+        // Sum rituals across all plannings
+        let rituelsCount = 0;
+        if (plannings.status === "fulfilled" && Array.isArray(plannings.value)) {
+          const results = await Promise.allSettled(
+            plannings.value.map((p: any) => api.get<any[]>(`/rituels/${p.id_planning}`))
+          );
+          rituelsCount = results.reduce((acc, r) => acc + (r.status === "fulfilled" && Array.isArray(r.value) ? r.value.length : 0), 0);
+        }
+
+        if (!mounted) return;
         setStats([
           { label: "Utilisateurs", value: num(users), icon: Users, tint: "bg-primary/10 text-primary" },
           { label: "Douaas", value: num(duas), icon: BookOpen, tint: "bg-accent/20 text-accent-foreground" },
           { label: "Plannings", value: num(plannings), icon: CalendarRange, tint: "bg-success/10 text-success" },
+          { label: "Rituels", value: rituelsCount, icon: Landmark, tint: "bg-secondary/30 text-secondary-foreground" },
         ]);
       } catch (err: any) {
         toast.error(err?.message || "Échec du chargement du tableau de bord");
@@ -50,7 +63,7 @@ export default function Dashboard() {
     <div className="animate-fade-in">
       <PageHeader title="Tableau de bord" description="Vue d'ensemble de votre plateforme." />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((s) => (
           <div key={s.label} className="bg-card rounded-xl border p-6 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between">
