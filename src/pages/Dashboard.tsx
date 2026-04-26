@@ -22,7 +22,7 @@ export default function Dashboard() {
         const [users, duas, plannings] = await Promise.allSettled([
           api.get<any[]>("/utilisateurs/"),
           api.get<any[]>("/douaa/all"),
-          api.get<any[]>("/planning/"),
+          api.get<any[]>("/plannings/"),
         ]);
         if (!mounted) return;
         const num = (r: PromiseSettledResult<any>) => {
