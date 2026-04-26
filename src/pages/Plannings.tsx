@@ -197,7 +197,6 @@ export default function Plannings() {
                 />
               </Field>
             </div>
-            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setAdding(false); setEditing(null); }} disabled={saving}>
