@@ -49,7 +49,7 @@ export default function Rituals() {
   const loadRituals = async (id: number) => {
     setRitLoading(true);
     try {
-      const data = await api.get<Rituel[]>(`/rituel/${id}`);
+      const data = await api.get<Rituel[]>(`/rituels/${id}`);
       setRituals(Array.isArray(data) ? data : []);
     } catch (err: any) {
       setRituals([]);
@@ -68,7 +68,7 @@ export default function Rituals() {
     if (Object.keys(errs).length) return;
     setSaving(true);
     try {
-      await api.post("/rituel/", {
+      await api.post("/rituels/", {
         nom: form.nom,
         ordre: Number(form.ordre),
         description: form.description || "",
