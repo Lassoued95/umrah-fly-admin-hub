@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Eye, Pencil, Trash2, Plus, CalendarRange, ImageIcon } from "lucide-react";
+import { Eye, Pencil, Trash2, Plus, CalendarRange } from "lucide-react";
 import { api } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
 import { PageSpinner, Spinner } from "@/components/Spinner";
@@ -18,14 +18,9 @@ type Planning = {
   id_planning: number;
   titre?: string;
   description?: string;
-  image?: string | null;
   date_heure?: string | null;
   type_evenement?: string | null;
 };
-
-const API_ORIGIN = "https://api.umrahfly.me";
-const imageUrl = (p?: string | null) =>
-  !p ? null : p.startsWith("http") ? p : `${API_ORIGIN}${p}`;
 
 const truncate = (s?: string, n = 70) => !s ? "—" : s.length > n ? s.slice(0, n) + "…" : s;
 
@@ -36,7 +31,7 @@ export default function Plannings() {
   const [viewing, setViewing] = useState<Planning | null>(null);
   const [editing, setEditing] = useState<Planning | null>(null);
   const [adding, setAdding] = useState(false);
-  const [form, setForm] = useState<{ titre?: string; description?: string; image?: File | null; date_heure?: string; type_evenement?: string }>({});
+  const [form, setForm] = useState<{ titre?: string; description?: string; date_heure?: string; type_evenement?: string }>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
@@ -61,33 +56,18 @@ export default function Plannings() {
     setForm({
       titre: p.titre,
       description: p.description,
-      image: null,
       date_heure: p.date_heure ? new Date(p.date_heure).toISOString().slice(0, 16) : "",
       type_evenement: p.type_evenement || "",
     });
     setErrors({});
   };
 
-  const buildFormData = () => {
-    const fd = new FormData();
-    fd.append("titre", form.titre || "");
-    fd.append("description", form.description || "");
-    fd.append("type_evenement", form.type_evenement || "");
-    if (form.date_heure) fd.append("date_heure", new Date(form.date_heure).toISOString());
-    else fd.append("date_heure", "");
-    if (form.image) fd.append("image", form.image);
-    return fd;
-  };
-
-  const buildJsonPayload = () => {
-    const payload: Record<string, any> = {
-      titre: form.titre || "",
-      description: form.description || "",
-      type_evenement: form.type_evenement || "",
-      date_heure: form.date_heure ? new Date(form.date_heure).toISOString() : null,
-    };
-    return payload;
-  };
+  const buildJsonPayload = () => ({
+    titre: form.titre || "",
+    description: form.description || "",
+    type_evenement: form.type_evenement || "",
+    date_heure: form.date_heure ? new Date(form.date_heure).toISOString() : null,
+  });
 
   const submit = async () => {
     const errs: Record<string, string> = {};
@@ -96,24 +76,12 @@ export default function Plannings() {
     if (Object.keys(errs).length) return;
     setSaving(true);
     try {
-      // Always use multipart/form-data — backend uses multer.single("image")
-      // which parses text fields from form-data, not JSON.
       if (editing) {
-        try {
-          await api.putForm(`/plannings/${editing.id_planning}`, buildFormData());
-        } catch (err: any) {
-          if (err?.status !== 500) throw err;
-          await api.put(`/plannings/${editing.id_planning}`, buildJsonPayload());
-        }
+        await api.put(`/plannings/${editing.id_planning}`, buildJsonPayload());
         toast.success("Planning mis à jour");
         setEditing(null);
       } else {
-        try {
-          await api.postForm("/plannings/", buildFormData());
-        } catch (err: any) {
-          if (err?.status !== 500) throw err;
-          await api.post("/plannings/", buildJsonPayload());
-        }
+        await api.post("/plannings/", buildJsonPayload());
         toast.success("Planning créé");
         setAdding(false);
       }
@@ -136,17 +104,10 @@ export default function Plannings() {
   };
 
   const columns: Column<Planning>[] = [
-    {
-      key: "image", header: "",
-      render: (p) => {
-        const url = imageUrl(p.image);
-        return url
-          ? <img src={url} alt="" className="h-10 w-10 rounded-md object-cover bg-muted" />
-          : <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center text-muted-foreground"><ImageIcon size={16} /></div>;
-      },
-    },
     { key: "id_planning", header: "ID", sortable: true, className: "w-16" },
     { key: "titre", header: "Titre", sortable: true, render: (p) => <span className="font-medium">{p.titre || "—"}</span> },
+    { key: "type_evenement", header: "Type", render: (p) => <span className="text-muted-foreground">{p.type_evenement || "—"}</span> },
+    { key: "date_heure", header: "Date", render: (p) => <span className="text-muted-foreground">{p.date_heure ? new Date(p.date_heure).toLocaleString("fr-FR") : "—"}</span> },
     { key: "description", header: "Description", render: (p) => <span className="text-muted-foreground">{truncate(p.description)}</span> },
   ];
 
@@ -184,9 +145,6 @@ export default function Plannings() {
           <SheetHeader><SheetTitle>{viewing?.titre || "Planning"}</SheetTitle></SheetHeader>
           {viewing && (
             <div className="mt-6 space-y-5">
-              {imageUrl(viewing.image) && (
-                <img src={imageUrl(viewing.image)!} alt="" className="w-full h-48 object-cover rounded-lg bg-muted" />
-              )}
               <DetailGrid items={[
                 ["ID", viewing.id_planning],
                 ["Titre", viewing.titre],
@@ -239,16 +197,6 @@ export default function Plannings() {
                 />
               </Field>
             </div>
-            <Field label="Image (jpg, png, webp — max 5 Mo)">
-              <Input
-                type="file"
-                accept="image/jpeg,image/jpg,image/png,image/webp"
-                onChange={(e) => setForm((f) => ({ ...f, image: e.target.files?.[0] || null }))}
-              />
-              {editing?.image && !form.image && (
-                <p className="text-xs text-muted-foreground mt-1">Image actuelle conservée si aucun fichier n'est sélectionné.</p>
-              )}
-            </Field>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setAdding(false); setEditing(null); }} disabled={saving}>
