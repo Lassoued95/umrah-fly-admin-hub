@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Eye, Pencil, Trash2, Plus, CalendarRange, ImageIcon } from "lucide-react";
+import { Eye, Pencil, Trash2, Plus, CalendarRange } from "lucide-react";
 import { api } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
 import { PageSpinner, Spinner } from "@/components/Spinner";
@@ -18,14 +18,9 @@ type Planning = {
   id_planning: number;
   titre?: string;
   description?: string;
-  image?: string | null;
   date_heure?: string | null;
   type_evenement?: string | null;
 };
-
-const API_ORIGIN = "https://api.umrahfly.me";
-const imageUrl = (p?: string | null) =>
-  !p ? null : p.startsWith("http") ? p : `${API_ORIGIN}${p}`;
 
 const truncate = (s?: string, n = 70) => !s ? "—" : s.length > n ? s.slice(0, n) + "…" : s;
 
@@ -36,7 +31,7 @@ export default function Plannings() {
   const [viewing, setViewing] = useState<Planning | null>(null);
   const [editing, setEditing] = useState<Planning | null>(null);
   const [adding, setAdding] = useState(false);
-  const [form, setForm] = useState<{ titre?: string; description?: string; image?: File | null; date_heure?: string; type_evenement?: string }>({});
+  const [form, setForm] = useState<{ titre?: string; description?: string; date_heure?: string; type_evenement?: string }>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
@@ -61,33 +56,18 @@ export default function Plannings() {
     setForm({
       titre: p.titre,
       description: p.description,
-      image: null,
       date_heure: p.date_heure ? new Date(p.date_heure).toISOString().slice(0, 16) : "",
       type_evenement: p.type_evenement || "",
     });
     setErrors({});
   };
 
-  const buildFormData = () => {
-    const fd = new FormData();
-    fd.append("titre", form.titre || "");
-    fd.append("description", form.description || "");
-    fd.append("type_evenement", form.type_evenement || "");
-    if (form.date_heure) fd.append("date_heure", new Date(form.date_heure).toISOString());
-    else fd.append("date_heure", "");
-    if (form.image) fd.append("image", form.image);
-    return fd;
-  };
-
-  const buildJsonPayload = () => {
-    const payload: Record<string, any> = {
-      titre: form.titre || "",
-      description: form.description || "",
-      type_evenement: form.type_evenement || "",
-      date_heure: form.date_heure ? new Date(form.date_heure).toISOString() : null,
-    };
-    return payload;
-  };
+  const buildJsonPayload = () => ({
+    titre: form.titre || "",
+    description: form.description || "",
+    type_evenement: form.type_evenement || "",
+    date_heure: form.date_heure ? new Date(form.date_heure).toISOString() : null,
+  });
 
   const submit = async () => {
     const errs: Record<string, string> = {};
