@@ -17,6 +17,24 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+// Capture token from URL query param (?token=...) before any rendering
+(() => {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    if (token) {
+      localStorage.setItem("token", token);
+      params.delete("token");
+      const qs = params.toString();
+      const newUrl =
+        window.location.pathname + (qs ? `?${qs}` : "") + window.location.hash;
+      window.history.replaceState({}, "", newUrl);
+    }
+  } catch (e) {
+    console.warn("Token capture failed:", e);
+  }
+})();
+
 const RootRoute = () => <Navigate to="/dashboard" replace />;
 
 const App = () => (
