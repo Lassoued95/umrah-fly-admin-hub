@@ -6,7 +6,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/lib/auth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import AppLayout from "@/components/AppLayout";
-import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
 import Plannings from "./pages/Plannings";
@@ -18,10 +17,7 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const RootRoute = () => {
-  const token = localStorage.getItem("token");
-  return token ? <Navigate to="/dashboard" replace /> : <Login />;
-};
+const RootRoute = () => <Navigate to="/dashboard" replace />;
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
