@@ -125,13 +125,13 @@ export default function Notifications() {
             <Input value={form.titre || ""} onChange={(e) => setForm((f: any) => ({ ...f, titre: e.target.value }))} className={errors.titre ? "border-destructive" : ""} />
           </Field>
           <Field label="Catégorie">
-            <Select value={form.categorie || "Info"} onValueChange={(v) => setForm((f: any) => ({ ...f, categorie: v }))}>
+            <Select value={form.categorie || "info"} onValueChange={(v) => setForm((f: any) => ({ ...f, categorie: v }))}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="Social">Social</SelectItem>
-                <SelectItem value="Info">Info</SelectItem>
-                <SelectItem value="Alert">Alerte</SelectItem>
-                <SelectItem value="Rappel">Rappel</SelectItem>
+                <SelectItem value="info">Info</SelectItem>
+                <SelectItem value="alert">Alerte</SelectItem>
+                <SelectItem value="social">Social</SelectItem>
+                <SelectItem value="rappel">Rappel</SelectItem>
               </SelectContent>
             </Select>
           </Field>
