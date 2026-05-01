@@ -18,6 +18,7 @@ async function request<T = any>(path: string, options: RequestInit = {}): Promis
   const token = getToken();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    "ngrok-skip-browser-warning": "true",
     ...(options.headers as Record<string, string>),
   };
   if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -45,7 +46,7 @@ async function request<T = any>(path: string, options: RequestInit = {}): Promis
 
 async function requestForm<T = any>(path: string, method: string, form: FormData): Promise<T> {
   const token = getToken();
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = { "ngrok-skip-browser-warning": "true" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
   const res = await fetch(`${BASE_URL}${path}`, { method, headers, body: form });
   let data: any = null;
