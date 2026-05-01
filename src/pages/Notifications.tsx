@@ -62,16 +62,16 @@ export default function Notifications() {
     if (Object.keys(errs).length) return;
     setSending(true);
     try {
-      await api.post("/notifications/", {
+      await api.post("/notifications/admin/send", {
         titre: form.titre,
         message: form.message,
-        categorie: form.categorie,
+        categorie: String(form.categorie || "info").toLowerCase(),
         type: form.type || null,
-        is_global: !!form.is_global,
-        id_utilisateur: form.is_global ? null : Number(form.id_utilisateur),
+        sendToAll: !!form.is_global,
+        userId: form.is_global ? null : Number(form.id_utilisateur),
       });
       toast.success("Notification envoyée");
-      setForm({ categorie: "Info", is_global: true });
+      setForm({ categorie: "info", is_global: true });
       load();
     } catch (err: any) { toast.error(err?.message || "Échec de l'envoi"); }
     finally { setSending(false); }
