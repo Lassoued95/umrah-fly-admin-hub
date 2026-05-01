@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Users, BookOpen, CalendarRange, Landmark, TrendingUp } from "lucide-react";
+import { Users, BookOpen, CalendarRange, Landmark, TrendingUp, Sparkles, ListOrdered } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
@@ -13,6 +13,8 @@ export default function Dashboard() {
     { label: "Douaas", value: null, icon: BookOpen, tint: "bg-accent/15 text-accent-foreground" },
     { label: "Plannings", value: null, icon: CalendarRange, tint: "bg-success/10 text-success" },
     { label: "Rituels", value: null, icon: Landmark, tint: "bg-secondary/30 text-secondary-foreground" },
+    { label: "Dhikrs", value: null, icon: Sparkles, tint: "bg-accent/15 text-accent-foreground" },
+    { label: "Étapes de rituels", value: null, icon: ListOrdered, tint: "bg-primary/10 text-primary" },
   ]);
   const [loading, setLoading] = useState(true);
 
@@ -34,13 +36,27 @@ export default function Dashboard() {
           return 0;
         };
 
-        // Sum rituals across all plannings
+        // Per-planning: rituels (with embedded étapes) and dhikrs
         let rituelsCount = 0;
-        if (plannings.status === "fulfilled" && Array.isArray(plannings.value)) {
-          const results = await Promise.allSettled(
-            plannings.value.map((p: any) => api.get<any[]>(`/rituels/${p.id_planning}`))
-          );
-          rituelsCount = results.reduce((acc, r) => acc + (r.status === "fulfilled" && Array.isArray(r.value) ? r.value.length : 0), 0);
+        let etapesCount = 0;
+        let dhikrsCount = 0;
+        const planningList = plannings.status === "fulfilled" && Array.isArray(plannings.value) ? plannings.value : [];
+        if (planningList.length) {
+          const [rituelsResults, dhikrResults] = await Promise.all([
+            Promise.allSettled(planningList.map((p: any) => api.get<any[]>(`/rituels/${p.id_planning}`))),
+            Promise.allSettled(planningList.map((p: any) => api.get<any[]>(`/dhikr/${p.id_planning}`))),
+          ]);
+          rituelsResults.forEach((r) => {
+            if (r.status === "fulfilled" && Array.isArray(r.value)) {
+              rituelsCount += r.value.length;
+              r.value.forEach((rit: any) => {
+                if (Array.isArray(rit?.etapes)) etapesCount += rit.etapes.length;
+              });
+            }
+          });
+          dhikrResults.forEach((r) => {
+            if (r.status === "fulfilled" && Array.isArray(r.value)) dhikrsCount += r.value.length;
+          });
         }
 
         if (!mounted) return;
@@ -49,6 +65,8 @@ export default function Dashboard() {
           { label: "Douaas", value: num(duas), icon: BookOpen, tint: "bg-accent/20 text-accent-foreground" },
           { label: "Plannings", value: num(plannings), icon: CalendarRange, tint: "bg-success/10 text-success" },
           { label: "Rituels", value: rituelsCount, icon: Landmark, tint: "bg-secondary/30 text-secondary-foreground" },
+          { label: "Dhikrs", value: dhikrsCount, icon: Sparkles, tint: "bg-accent/20 text-accent-foreground" },
+          { label: "Étapes de rituels", value: etapesCount, icon: ListOrdered, tint: "bg-primary/10 text-primary" },
         ]);
       } catch (err: any) {
         toast.error(err?.message || "Échec du chargement du tableau de bord");
@@ -63,7 +81,7 @@ export default function Dashboard() {
     <div className="animate-fade-in">
       <PageHeader title="Tableau de bord" description="Vue d'ensemble de votre plateforme." />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {stats.map((s) => (
           <div key={s.label} className="bg-card rounded-xl border p-6 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between">
