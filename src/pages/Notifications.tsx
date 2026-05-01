@@ -37,7 +37,7 @@ export default function Notifications() {
   const [deleting, setDeleting] = useState<Notif | null>(null);
   const [delLoading, setDelLoading] = useState(false);
 
-  const [form, setForm] = useState<any>({ categorie: "Info", is_global: true });
+  const [form, setForm] = useState<any>({ categorie: "info", is_global: true });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [sending, setSending] = useState(false);
 
