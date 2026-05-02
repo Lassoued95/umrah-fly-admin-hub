@@ -32,6 +32,7 @@ export default function Duas() {
   const [form, setForm] = useState<Partial<Dua>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [audioFile, setAudioFile] = useState<File | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -48,13 +49,29 @@ export default function Duas() {
     const errs: Record<string, string> = {};
     if (!form.titre) errs.titre = "Requis";
     if (!form.texte_arabe) errs.texte_arabe = "Requis";
+    if (!audioFile) errs.audio = "Fichier audio requis";
     setErrors(errs);
     if (Object.keys(errs).length) return;
+
     setSaving(true);
     try {
-      await api.post("/douaa/", form);
-      toast.success("Douaa créée");
-      setAdding(false); setForm({}); load();
+      const formData = new FormData();
+      formData.append("audio", audioFile!);
+      const uploadRes = await api.postForm<{ filename: string }>("/douaa/upload-audio", formData);
+      const { filename } = uploadRes;
+
+      await api.post("/douaa/", {
+        titre: form.titre,
+        texte_arabe: form.texte_arabe,
+        traduction: form.traduction,
+        audio_filename: filename,
+      });
+
+      toast.success("Douaa créée avec succès");
+      setAdding(false);
+      setForm({});
+      setAudioFile(null);
+      load();
     } catch (err: any) {
       toast.error(err?.message || "Échec de la création");
     } finally { setSaving(false); }
@@ -115,7 +132,7 @@ export default function Duas() {
         </SheetContent>
       </Sheet>
 
-      <Dialog open={adding} onOpenChange={setAdding}>
+      <Dialog open={adding} onOpenChange={(o) => { setAdding(o); if (!o) setAudioFile(null); }}>
         <DialogContent className="max-w-lg">
           <DialogHeader><DialogTitle>Ajouter une douaa</DialogTitle></DialogHeader>
           <div className="space-y-3 py-2">
@@ -128,8 +145,16 @@ export default function Duas() {
             <Field label="Traduction">
               <Textarea rows={3} value={form.traduction || ""} onChange={(e) => setForm((f) => ({ ...f, traduction: e.target.value }))} />
             </Field>
-            <Field label="URL audio">
-              <Input value={form.audio_url || ""} onChange={(e) => setForm((f) => ({ ...f, audio_url: e.target.value }))} placeholder="https://..." />
+            <Field label="Fichier audio (.mp3) *" error={errors.audio}>
+              <Input
+                type="file"
+                accept=".mp3,audio/*"
+                onChange={(e) => setAudioFile(e.target.files?.[0] ?? null)}
+                className={errors.audio ? "border-destructive" : ""}
+              />
+              {audioFile && (
+                <p className="text-xs text-muted-foreground mt-1">📎 {audioFile.name}</p>
+              )}
             </Field>
           </div>
           <DialogFooter>
