@@ -144,13 +144,8 @@ export default function Rituals() {
         ordre: Number(data.ordre),
         id_rituel: viewing.id_rituel,
       };
-      if (etapeDialog.mode === "edit" && data.id_etape) {
-        await api.put(`/rituels/step/${data.id_etape}`, payload);
-        toast.success("Étape mise à jour");
-      } else {
-        await api.post("/rituels/step", payload);
-        toast.success("Étape créée");
-      }
+      await api.post("/rituels/step", payload);
+      toast.success("Étape créée");
       setEtapeDialog({ open: false, mode: "create", data: {} });
       if (selected) await loadRituals(selected.id_planning);
     } catch (err: any) {
@@ -299,18 +294,8 @@ export default function Rituals() {
                           <div className="font-medium text-sm">{e.titre || "—"}</div>
                           {e.description && <div className="text-xs text-muted-foreground mt-1">{e.description}</div>}
                         </div>
-                        <div className="flex gap-1">
-                          <Button size="icon" variant="ghost" onClick={() => {
-                            setEtapeErrors({});
-                            setEtapeDialog({
-                              open: true, mode: "edit",
-                              data: { id_etape: e.id_etape, titre: e.titre ?? "", description: e.description ?? "", ordre: e.ordre ?? "" }
-                            });
-                          }}><Pencil size={14} /></Button>
-                          <Button size="icon" variant="ghost" onClick={() => setDeletingEtape(e)}>
-                            <Trash2 size={14} className="text-destructive" />
-                          </Button>
-                        </div>
+                        <div className="flex gap-1" />
+
                       </div>
                     ))}
                   </div>
