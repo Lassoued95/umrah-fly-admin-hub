@@ -44,7 +44,7 @@ export default function DhikrPage() {
     (async () => {
       setPlanLoading(true);
       try {
-        const data = await api.get<Planning[]>("/planning/");
+        const data = await api.get<Planning[]>("/plannings/");
         const arr = Array.isArray(data) ? data : [];
         setPlannings(arr);
         if (arr.length) setSelected(arr[0]);
