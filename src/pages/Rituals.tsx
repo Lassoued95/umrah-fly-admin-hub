@@ -294,18 +294,8 @@ export default function Rituals() {
                           <div className="font-medium text-sm">{e.titre || "—"}</div>
                           {e.description && <div className="text-xs text-muted-foreground mt-1">{e.description}</div>}
                         </div>
-                        <div className="flex gap-1">
-                          <Button size="icon" variant="ghost" onClick={() => {
-                            setEtapeErrors({});
-                            setEtapeDialog({
-                              open: true, mode: "edit",
-                              data: { id_etape: e.id_etape, titre: e.titre ?? "", description: e.description ?? "", ordre: e.ordre ?? "" }
-                            });
-                          }}><Pencil size={14} /></Button>
-                          <Button size="icon" variant="ghost" onClick={() => setDeletingEtape(e)}>
-                            <Trash2 size={14} className="text-destructive" />
-                          </Button>
-                        </div>
+                        <div className="flex gap-1" />
+
                       </div>
                     ))}
                   </div>
