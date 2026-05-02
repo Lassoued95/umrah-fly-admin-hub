@@ -144,13 +144,8 @@ export default function Rituals() {
         ordre: Number(data.ordre),
         id_rituel: viewing.id_rituel,
       };
-      if (etapeDialog.mode === "edit" && data.id_etape) {
-        await api.put(`/rituels/step/${data.id_etape}`, payload);
-        toast.success("Étape mise à jour");
-      } else {
-        await api.post("/rituels/step", payload);
-        toast.success("Étape créée");
-      }
+      await api.post("/rituels/step", payload);
+      toast.success("Étape créée");
       setEtapeDialog({ open: false, mode: "create", data: {} });
       if (selected) await loadRituals(selected.id_planning);
     } catch (err: any) {
