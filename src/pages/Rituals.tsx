@@ -130,10 +130,6 @@ export default function Rituals() {
 
   const submitEtape = async () => {
     if (!viewing) return;
-    if (etapeDialog.mode === "edit") {
-      toast.error("La modification d'étape n'est pas supportée par l'API.");
-      return;
-    }
     const data = etapeDialog.data;
     const errs: Record<string, string> = {};
     if (!data.titre) errs.titre = "Requis";
@@ -148,8 +144,13 @@ export default function Rituals() {
         ordre: Number(data.ordre),
         id_rituel: viewing.id_rituel,
       };
-      await api.post("/rituels/step", payload);
-      toast.success("Étape créée");
+      if (etapeDialog.mode === "edit" && data.id_etape) {
+        await api.put(`/rituels/step/${data.id_etape}`, payload);
+        toast.success("Étape mise à jour");
+      } else {
+        await api.post("/rituels/step", payload);
+        toast.success("Étape créée");
+      }
       setEtapeDialog({ open: false, mode: "create", data: {} });
       if (selected) await loadRituals(selected.id_planning);
     } catch (err: any) {
@@ -158,8 +159,16 @@ export default function Rituals() {
   };
 
   const confirmDeleteEtape = async () => {
-    toast.error("La suppression d'étape n'est pas supportée par l'API.");
-    setDeletingEtape(null);
+    if (!deletingEtape) return;
+    setDeletingEtapeLoading(true);
+    try {
+      await api.del(`/rituels/step/${deletingEtape.id_etape}`);
+      toast.success("Étape supprimée");
+      setDeletingEtape(null);
+      if (selected) await loadRituals(selected.id_planning);
+    } catch (err: any) {
+      toast.error(err?.message || "Échec de la suppression de l'étape");
+    } finally { setDeletingEtapeLoading(false); }
   };
 
   const columns: Column<Rituel>[] = [
