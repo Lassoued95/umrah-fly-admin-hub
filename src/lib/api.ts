@@ -1,4 +1,4 @@
-const BASE_URL = "https://pipy-operculate-mi.ngrok-free.dev/api";
+const BASE_URL = "https://showplace-ecard-flatterer.ngrok-free.dev/api";
 
 export class ApiError extends Error {
   status: number;
