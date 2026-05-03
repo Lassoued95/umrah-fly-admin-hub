@@ -37,7 +37,7 @@ export default function Notifications() {
   const [deleting, setDeleting] = useState<Notif | null>(null);
   const [delLoading, setDelLoading] = useState(false);
 
-  const [form, setForm] = useState<any>({ categorie: "Info", is_global: true });
+  const [form, setForm] = useState<any>({ categorie: "info", is_global: true });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [sending, setSending] = useState(false);
 
@@ -62,16 +62,16 @@ export default function Notifications() {
     if (Object.keys(errs).length) return;
     setSending(true);
     try {
-      await api.post("/notifications/", {
+      await api.post("/notifications/admin/send", {
         titre: form.titre,
         message: form.message,
-        categorie: form.categorie,
+        categorie: String(form.categorie || "info").toLowerCase(),
         type: form.type || null,
-        is_global: !!form.is_global,
-        id_utilisateur: form.is_global ? null : Number(form.id_utilisateur),
+        sendToAll: !!form.is_global,
+        userId: form.is_global ? null : Number(form.id_utilisateur),
       });
       toast.success("Notification envoyée");
-      setForm({ categorie: "Info", is_global: true });
+      setForm({ categorie: "info", is_global: true });
       load();
     } catch (err: any) { toast.error(err?.message || "Échec de l'envoi"); }
     finally { setSending(false); }
@@ -125,13 +125,13 @@ export default function Notifications() {
             <Input value={form.titre || ""} onChange={(e) => setForm((f: any) => ({ ...f, titre: e.target.value }))} className={errors.titre ? "border-destructive" : ""} />
           </Field>
           <Field label="Catégorie">
-            <Select value={form.categorie || "Info"} onValueChange={(v) => setForm((f: any) => ({ ...f, categorie: v }))}>
+            <Select value={form.categorie || "info"} onValueChange={(v) => setForm((f: any) => ({ ...f, categorie: v }))}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="Social">Social</SelectItem>
-                <SelectItem value="Info">Info</SelectItem>
-                <SelectItem value="Alert">Alerte</SelectItem>
-                <SelectItem value="Rappel">Rappel</SelectItem>
+                <SelectItem value="info">Info</SelectItem>
+                <SelectItem value="alert">Alerte</SelectItem>
+                <SelectItem value="social">Social</SelectItem>
+                <SelectItem value="rappel">Rappel</SelectItem>
               </SelectContent>
             </Select>
           </Field>

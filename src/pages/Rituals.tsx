@@ -118,21 +118,15 @@ export default function Rituals() {
     } finally { setDeletingRitLoading(false); }
   };
 
-  // ------- Etapes -------
-  const loadEtapes = async (rituelId: number) => {
-    setEtapesLoading(true);
-    try {
-      const data = await api.get<Etape[]>(`/rituels/${rituelId}/etapes`);
-      setEtapes(Array.isArray(data) ? data : []);
-    } catch (err: any) {
-      // Fallback: try to use etapes embedded in viewing rituel
-      const fallback = viewing?.etapes;
-      if (Array.isArray(fallback)) setEtapes(fallback);
-      else { setEtapes([]); toast.error(err?.message || "Échec du chargement des étapes"); }
-    } finally { setEtapesLoading(false); }
-  };
-
-  useEffect(() => { if (viewing) loadEtapes(viewing.id_rituel); else setEtapes([]); }, [viewing]);
+  // ------- Etapes (backend only exposes POST /rituels/step; étapes are embedded in GET /rituels/:planningId) -------
+  useEffect(() => {
+    if (viewing) {
+      const embedded = rituals.find((r) => r.id_rituel === viewing.id_rituel)?.etapes;
+      setEtapes(Array.isArray(embedded) ? embedded : (viewing.etapes ?? []));
+    } else {
+      setEtapes([]);
+    }
+  }, [viewing, rituals]);
 
   const submitEtape = async () => {
     if (!viewing) return;
@@ -150,30 +144,25 @@ export default function Rituals() {
         ordre: Number(data.ordre),
         id_rituel: viewing.id_rituel,
       };
-      if (etapeDialog.mode === "edit" && data.id_etape) {
-        await api.put(`/etapes/${data.id_etape}`, payload);
-        toast.success("Étape mise à jour");
-      } else {
-        await api.post("/etapes", payload);
-        toast.success("Étape créée");
-      }
+      await api.post("/rituels/step", payload);
+      toast.success("Étape créée");
       setEtapeDialog({ open: false, mode: "create", data: {} });
-      loadEtapes(viewing.id_rituel);
+      if (selected) await loadRituals(selected.id_planning);
     } catch (err: any) {
       toast.error(err?.message || "Échec de l'enregistrement de l'étape");
     } finally { setEtapeSaving(false); }
   };
 
   const confirmDeleteEtape = async () => {
-    if (!deletingEtape || !viewing) return;
+    if (!deletingEtape) return;
     setDeletingEtapeLoading(true);
     try {
-      await api.del(`/etapes/${deletingEtape.id_etape}`);
+      await api.del(`/rituels/step/${deletingEtape.id_etape}`);
       toast.success("Étape supprimée");
       setDeletingEtape(null);
-      loadEtapes(viewing.id_rituel);
+      if (selected) await loadRituals(selected.id_planning);
     } catch (err: any) {
-      toast.error(err?.message || "Échec de la suppression");
+      toast.error(err?.message || "Échec de la suppression de l'étape");
     } finally { setDeletingEtapeLoading(false); }
   };
 
@@ -305,18 +294,8 @@ export default function Rituals() {
                           <div className="font-medium text-sm">{e.titre || "—"}</div>
                           {e.description && <div className="text-xs text-muted-foreground mt-1">{e.description}</div>}
                         </div>
-                        <div className="flex gap-1">
-                          <Button size="icon" variant="ghost" onClick={() => {
-                            setEtapeErrors({});
-                            setEtapeDialog({
-                              open: true, mode: "edit",
-                              data: { id_etape: e.id_etape, titre: e.titre ?? "", description: e.description ?? "", ordre: e.ordre ?? "" }
-                            });
-                          }}><Pencil size={14} /></Button>
-                          <Button size="icon" variant="ghost" onClick={() => setDeletingEtape(e)}>
-                            <Trash2 size={14} className="text-destructive" />
-                          </Button>
-                        </div>
+                        <div className="flex gap-1" />
+
                       </div>
                     ))}
                   </div>
