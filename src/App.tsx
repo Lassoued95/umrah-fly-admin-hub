@@ -25,6 +25,13 @@ const queryClient = new QueryClient();
     const token = params.get("token");
     if (token) {
       localStorage.setItem("token", token);
+      try {
+        const [, payload] = token.split(".");
+        const user = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
+        localStorage.setItem("user", JSON.stringify(user));
+      } catch {
+        // invalid JWT, ignore
+      }
       params.delete("token");
       const qs = params.toString();
       const newUrl =
