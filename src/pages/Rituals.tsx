@@ -169,14 +169,14 @@ export default function Rituals() {
 
   const columns: Column<Rituel>[] = [
     { key: "ordre", header: "#", sortable: true, className: "w-14", render: (r) => <span className="font-mono text-sm">{r.ordre ?? "—"}</span> },
-    { key: "nom", header: "Nom", sortable: true, render: (r) => <span className="font-medium">{r.nom || "—"}</span> },
-    { key: "description", header: "Description", render: (r) => <span className="text-muted-foreground">{truncate(r.description, 60)}</span> },
+    { key: "nom", header: "Nom", sortable: true, render: (r) => <span className="font-medium">{loc(r.nom) || "—"}</span> },
+    { key: "description", header: "Description", render: (r) => <span className="text-muted-foreground">{truncate(loc(r.description), 60)}</span> },
     { key: "id_douaa", header: "ID Douaa", render: (r) => r.id_douaa ?? "—" },
   ];
 
   const openCreate = () => {
     setEditingRit(null);
-    setForm({ ordre: rituals.length + 1 });
+    setForm({ nom: {}, description: {}, ordre: rituals.length + 1 });
     setErrors({});
     setAdding(true);
   };
@@ -184,9 +184,9 @@ export default function Rituals() {
   const openEdit = (r: Rituel) => {
     setEditingRit(r);
     setForm({
-      nom: r.nom ?? "",
+      nom: toI18n(r.nom),
       ordre: r.ordre ?? "",
-      description: r.description ?? "",
+      description: toI18n(r.description),
       id_douaa: r.id_douaa ?? "",
     });
     setErrors({});
