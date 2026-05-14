@@ -14,13 +14,14 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Field, DetailGrid } from "./Users";
 import { cn } from "@/lib/utils";
+import { I18nInput, I18nValue, toI18n, loc, hasI18n, LANGS } from "@/components/I18nField";
 
-type Planning = { id_planning: number; titre?: string; type_evenement?: string; date_heure?: string };
-type Etape = { id_etape: number; titre?: string; description?: string; ordre?: number; id_rituel?: number };
-type Rituel = { id_rituel: number; nom?: string; ordre?: number; description?: string; id_douaa?: number; etapes?: Etape[] };
+type Planning = { id_planning: number; titre?: any; type_evenement?: string; date_heure?: string };
+type Etape = { id_etape: number; titre?: any; description?: any; ordre?: number; id_rituel?: number };
+type Rituel = { id_rituel: number; nom?: any; ordre?: number; description?: any; id_douaa?: number; etapes?: Etape[] };
 
 const truncate = (s?: string, n = 60) => !s ? "—" : s.length > n ? s.slice(0, n) + "…" : s;
-const planLabel = (p: Planning) => p.titre || p.type_evenement || `Planning #${p.id_planning}`;
+const planLabel = (p: Planning) => loc(p.titre) || p.type_evenement || `Planning #${p.id_planning}`;
 
 export default function Rituals() {
   const [plannings, setPlannings] = useState<Planning[]>([]);
