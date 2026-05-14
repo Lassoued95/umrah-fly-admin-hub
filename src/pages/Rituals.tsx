@@ -393,7 +393,7 @@ export default function Rituals() {
         open={!!deletingEtape}
         onOpenChange={(o) => !o && setDeletingEtape(null)}
         title="Supprimer cette étape ?"
-        description={`"${deletingEtape?.titre ?? ""}" sera supprimée définitivement.`}
+        description={`"${loc(deletingEtape?.titre)}" sera supprimée définitivement.`}
         confirmText="Supprimer"
         loading={deletingEtapeLoading}
         onConfirm={confirmDeleteEtape}
