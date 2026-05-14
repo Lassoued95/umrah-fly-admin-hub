@@ -79,7 +79,7 @@ export default function Rituals() {
   const submitRituel = async () => {
     if (!selected) return;
     const errs: Record<string, string> = {};
-    if (!form.nom) errs.nom = "Requis";
+    if (!hasI18n(form.nom)) errs.nom = "Requis";
     if (form.ordre === undefined || form.ordre === "") errs.ordre = "Requis";
     setErrors(errs);
     if (Object.keys(errs).length) return;
@@ -88,7 +88,7 @@ export default function Rituals() {
       const payload = {
         nom: form.nom,
         ordre: Number(form.ordre),
-        description: form.description || "",
+        description: form.description || {},
         id_planning: selected.id_planning,
         id_douaa: form.id_douaa ? Number(form.id_douaa) : null,
       };
