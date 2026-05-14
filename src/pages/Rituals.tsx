@@ -382,7 +382,7 @@ export default function Rituals() {
         open={!!deletingRit}
         onOpenChange={(o) => !o && setDeletingRit(null)}
         title="Supprimer ce rituel ?"
-        description={`"${deletingRit?.nom ?? ""}" sera supprimé définitivement.`}
+        description={`"${loc(deletingRit?.nom)}" sera supprimé définitivement.`}
         confirmText="Supprimer"
         loading={deletingRitLoading}
         onConfirm={confirmDeleteRituel}
