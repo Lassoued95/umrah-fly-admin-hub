@@ -131,8 +131,8 @@ export default function DhikrPage() {
 
   const columns: Column<Dhikr>[] = [
     { key: "ordre", header: "#", sortable: true, className: "w-14", render: (d) => <span className="font-mono text-sm">{d.ordre ?? "—"}</span> },
-    { key: "nom", header: "Nom", sortable: true, render: (d) => <span className="font-medium">{d.nom || "—"}</span> },
-    { key: "description", header: "Description", render: (d) => <span className="text-muted-foreground">{truncate(d.description, 60)}</span> },
+    { key: "nom", header: "Nom", sortable: true, render: (d) => <span className="font-medium">{loc(d.nom) || "—"}</span> },
+    { key: "description", header: "Description", render: (d) => <span className="text-muted-foreground">{truncate(loc(d.description), 60)}</span> },
     { key: "repetitions", header: "Répétitions", sortable: true, render: (d) => (
       <span className="inline-flex items-center justify-center min-w-[2rem] px-2 py-0.5 rounded-full bg-accent-soft text-accent-foreground text-xs font-semibold">{d.repetitions ?? 0}</span>
     ) },
