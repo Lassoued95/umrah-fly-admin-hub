@@ -133,7 +133,7 @@ export default function Rituals() {
     if (!viewing) return;
     const data = etapeDialog.data;
     const errs: Record<string, string> = {};
-    if (!data.titre) errs.titre = "Requis";
+    if (!hasI18n(data.titre)) errs.titre = "Requis";
     if (data.ordre === undefined || data.ordre === "") errs.ordre = "Requis";
     setEtapeErrors(errs);
     if (Object.keys(errs).length) return;
@@ -141,7 +141,7 @@ export default function Rituals() {
     try {
       const payload = {
         titre: data.titre,
-        description: data.description || "",
+        description: data.description || {},
         ordre: Number(data.ordre),
         id_rituel: viewing.id_rituel,
       };
