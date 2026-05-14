@@ -232,11 +232,11 @@ export default function DhikrPage() {
       </Sheet>
 
       <Dialog open={isModalOpen} onOpenChange={(o) => { if (!o) { setAdding(false); setEditing(null); } }}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{editing ? "Modifier le dhikr" : "Ajouter un dhikr"}</DialogTitle></DialogHeader>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-2">
-            <Field label="Nom *" error={errors.nom} className="sm:col-span-2">
-              <Input value={form.nom || ""} onChange={(e) => setForm((f: any) => ({ ...f, nom: e.target.value }))} className={errors.nom ? "border-destructive" : ""} />
+            <Field label="Nom * (3 langues)" error={errors.nom} className="sm:col-span-2">
+              <I18nInput value={form.nom || {}} onChange={(v) => setForm((f: any) => ({ ...f, nom: v }))} error={!!errors.nom} />
             </Field>
             <Field label="Ordre *" error={errors.ordre}>
               <Input type="number" value={form.ordre ?? ""} onChange={(e) => setForm((f: any) => ({ ...f, ordre: e.target.value }))} className={errors.ordre ? "border-destructive" : ""} />
@@ -244,8 +244,8 @@ export default function DhikrPage() {
             <Field label="Répétitions *" error={errors.repetitions}>
               <Input type="number" value={form.repetitions ?? ""} onChange={(e) => setForm((f: any) => ({ ...f, repetitions: e.target.value }))} className={errors.repetitions ? "border-destructive" : ""} />
             </Field>
-            <Field label="Description" className="sm:col-span-2">
-              <Textarea rows={3} value={form.description || ""} onChange={(e) => setForm((f: any) => ({ ...f, description: e.target.value }))} />
+            <Field label="Description (3 langues)" className="sm:col-span-2">
+              <I18nInput value={form.description || {}} onChange={(v) => setForm((f: any) => ({ ...f, description: v }))} multiline rows={2} />
             </Field>
             {!editing && (
               <Field label="Planning" className="sm:col-span-2">
@@ -262,7 +262,7 @@ export default function DhikrPage() {
 
       <ConfirmDialog
         open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}
-        title="Supprimer ce dhikr ?" description={deleting ? `Ceci supprimera « ${deleting.nom} ».` : ""}
+        title="Supprimer ce dhikr ?" description={deleting ? `Ceci supprimera « ${loc(deleting.nom)} ».` : ""}
         onConfirm={confirmDelete} loading={delLoading}
       />
     </div>
