@@ -255,7 +255,7 @@ export default function Rituals() {
       {/* Rituel detail + étapes management */}
       <Sheet open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
         <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
-          <SheetHeader><SheetTitle>{viewing?.nom || "Rituel"}</SheetTitle></SheetHeader>
+          <SheetHeader><SheetTitle>{loc(viewing?.nom) || "Rituel"}</SheetTitle></SheetHeader>
           {viewing && (
             <div className="mt-6 space-y-6">
               <DetailGrid items={[
@@ -264,8 +264,26 @@ export default function Rituals() {
                 ["ID Douaa", viewing.id_douaa],
               ]} />
               <div>
+                <div className="text-xs text-muted-foreground mb-2">Nom</div>
+                <div className="space-y-1 text-sm">
+                  {LANGS.map((l) => (
+                    <div key={l.key} className="flex gap-2">
+                      <span className="text-[10px] font-mono uppercase text-muted-foreground w-8">{l.key}</span>
+                      <span dir={l.dir}>{toI18n(viewing.nom)[l.key] || "—"}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
                 <div className="text-xs text-muted-foreground mb-2">Description</div>
-                <div className="text-sm leading-relaxed">{viewing.description || "—"}</div>
+                <div className="space-y-2 text-sm">
+                  {LANGS.map((l) => (
+                    <div key={l.key}>
+                      <div className="text-[10px] font-mono uppercase text-muted-foreground">{l.key}</div>
+                      <div dir={l.dir} className="leading-relaxed">{toI18n(viewing.description)[l.key] || "—"}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Etapes section */}
@@ -276,7 +294,7 @@ export default function Rituals() {
                   </div>
                   <Button size="sm" onClick={() => {
                     setEtapeErrors({});
-                    setEtapeDialog({ open: true, mode: "create", data: { ordre: etapes.length + 1 } });
+                    setEtapeDialog({ open: true, mode: "create", data: { titre: {}, description: {}, ordre: etapes.length + 1 } });
                   }}>
                     <Plus size={14} className="mr-1" /> Ajouter
                   </Button>
@@ -292,8 +310,8 @@ export default function Rituals() {
                       <div key={e.id_etape} className="border rounded-lg p-3 flex items-start gap-3">
                         <div className="font-mono text-xs bg-muted rounded px-2 py-1 mt-0.5">{e.ordre ?? "—"}</div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm">{e.titre || "—"}</div>
-                          {e.description && <div className="text-xs text-muted-foreground mt-1">{e.description}</div>}
+                          <div className="font-medium text-sm">{loc(e.titre) || "—"}</div>
+                          {loc(e.description) && <div className="text-xs text-muted-foreground mt-1">{loc(e.description)}</div>}
                         </div>
                         <div className="flex gap-1" />
 
