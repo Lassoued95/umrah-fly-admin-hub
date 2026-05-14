@@ -82,7 +82,7 @@ export default function DhikrPage() {
   };
 
   const openAdd = () => {
-    setForm({ ordre: list.length + 1, repetitions: 33 });
+    setForm({ nom: {}, description: {}, ordre: list.length + 1, repetitions: 33 });
     setErrors({});
     setAdding(true);
   };
@@ -90,7 +90,7 @@ export default function DhikrPage() {
   const submit = async () => {
     if (!selected) return;
     const errs: Record<string, string> = {};
-    if (!form.nom) errs.nom = "Requis";
+    if (!hasI18n(form.nom)) errs.nom = "Requis";
     if (form.ordre === undefined || form.ordre === "") errs.ordre = "Requis";
     if (!form.repetitions) errs.repetitions = "Requis";
     setErrors(errs);
@@ -100,7 +100,7 @@ export default function DhikrPage() {
       const body = {
         nom: form.nom,
         ordre: Number(form.ordre),
-        description: form.description || "",
+        description: form.description || {},
         repetitions: Number(form.repetitions),
       };
       if (editing) {
