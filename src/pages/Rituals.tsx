@@ -327,11 +327,11 @@ export default function Rituals() {
 
       {/* Create / Edit rituel dialog */}
       <Dialog open={adding} onOpenChange={(o) => { setAdding(o); if (!o) { setEditingRit(null); setForm({}); } }}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{editingRit ? "Modifier le rituel" : "Ajouter un rituel"}</DialogTitle></DialogHeader>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-2">
-            <Field label="Nom *" error={errors.nom} className="sm:col-span-2">
-              <Input value={form.nom || ""} onChange={(e) => setForm((f: any) => ({ ...f, nom: e.target.value }))} className={errors.nom ? "border-destructive" : ""} />
+            <Field label="Nom * (3 langues)" error={errors.nom} className="sm:col-span-2">
+              <I18nInput value={form.nom || {}} onChange={(v) => setForm((f: any) => ({ ...f, nom: v }))} error={!!errors.nom} />
             </Field>
             <Field label="Ordre *" error={errors.ordre}>
               <Input type="number" value={form.ordre ?? ""} onChange={(e) => setForm((f: any) => ({ ...f, ordre: e.target.value }))} className={errors.ordre ? "border-destructive" : ""} />
@@ -339,11 +339,11 @@ export default function Rituals() {
             <Field label="ID Douaa">
               <Input type="number" value={form.id_douaa ?? ""} onChange={(e) => setForm((f: any) => ({ ...f, id_douaa: e.target.value }))} />
             </Field>
-            <Field label="Planning">
+            <Field label="Planning" className="sm:col-span-2">
               <Input value={selected ? `${planLabel(selected)} (#${selected.id_planning})` : ""} disabled />
             </Field>
-            <Field label="Description" className="sm:col-span-2">
-              <Textarea rows={3} value={form.description || ""} onChange={(e) => setForm((f: any) => ({ ...f, description: e.target.value }))} />
+            <Field label="Description (3 langues)" className="sm:col-span-2">
+              <I18nInput value={form.description || {}} onChange={(v) => setForm((f: any) => ({ ...f, description: v }))} multiline rows={2} />
             </Field>
           </div>
           <DialogFooter>
@@ -355,20 +355,20 @@ export default function Rituals() {
 
       {/* Etape create/edit dialog */}
       <Dialog open={etapeDialog.open} onOpenChange={(o) => setEtapeDialog((d) => ({ ...d, open: o }))}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{etapeDialog.mode === "edit" ? "Modifier l'étape" : "Ajouter une étape"}</DialogTitle></DialogHeader>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-2">
-            <Field label="Titre *" error={etapeErrors.titre} className="sm:col-span-2">
-              <Input value={etapeDialog.data.titre || ""} onChange={(e) => setEtapeDialog((d) => ({ ...d, data: { ...d.data, titre: e.target.value } }))} className={etapeErrors.titre ? "border-destructive" : ""} />
+            <Field label="Titre * (3 langues)" error={etapeErrors.titre} className="sm:col-span-2">
+              <I18nInput value={etapeDialog.data.titre || {}} onChange={(v) => setEtapeDialog((d) => ({ ...d, data: { ...d.data, titre: v } }))} error={!!etapeErrors.titre} />
             </Field>
             <Field label="Ordre *" error={etapeErrors.ordre}>
               <Input type="number" value={etapeDialog.data.ordre ?? ""} onChange={(e) => setEtapeDialog((d) => ({ ...d, data: { ...d.data, ordre: e.target.value } }))} className={etapeErrors.ordre ? "border-destructive" : ""} />
             </Field>
             <Field label="Rituel">
-              <Input value={viewing ? `${viewing.nom} (#${viewing.id_rituel})` : ""} disabled />
+              <Input value={viewing ? `${loc(viewing.nom)} (#${viewing.id_rituel})` : ""} disabled />
             </Field>
-            <Field label="Description" className="sm:col-span-2">
-              <Textarea rows={3} value={etapeDialog.data.description || ""} onChange={(e) => setEtapeDialog((d) => ({ ...d, data: { ...d.data, description: e.target.value } }))} />
+            <Field label="Description (3 langues)" className="sm:col-span-2">
+              <I18nInput value={etapeDialog.data.description || {}} onChange={(v) => setEtapeDialog((d) => ({ ...d, data: { ...d.data, description: v } }))} multiline rows={2} />
             </Field>
           </div>
           <DialogFooter>
