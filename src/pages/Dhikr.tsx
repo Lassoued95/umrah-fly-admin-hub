@@ -14,12 +14,13 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Field, DetailGrid } from "./Users";
 import { cn } from "@/lib/utils";
+import { I18nInput, I18nValue, toI18n, loc, hasI18n, LANGS } from "@/components/I18nField";
 
-type Planning = { id_planning: number; titre?: string; type_evenement?: string; date?: string };
-type Dhikr = { id_dhikr: number; nom?: string; ordre?: number; description?: string; repetitions?: number; id_planning?: number };
+type Planning = { id_planning: number; titre?: any; type_evenement?: string; date?: string };
+type Dhikr = { id_dhikr: number; nom?: any; ordre?: number; description?: any; repetitions?: number; id_planning?: number };
 
 const truncate = (s?: string, n = 60) => !s ? "—" : s.length > n ? s.slice(0, n) + "…" : s;
-const planLabel = (p: Planning) => p.titre || p.type_evenement || `Planning #${p.id_planning}`;
+const planLabel = (p: Planning) => loc(p.titre) || p.type_evenement || `Planning #${p.id_planning}`;
 
 export default function DhikrPage() {
   const [plannings, setPlannings] = useState<Planning[]>([]);
@@ -76,12 +77,12 @@ export default function DhikrPage() {
 
   const openEdit = (d: Dhikr) => {
     setEditing(d);
-    setForm({ nom: d.nom, ordre: d.ordre, description: d.description, repetitions: d.repetitions });
+    setForm({ nom: toI18n(d.nom), ordre: d.ordre, description: toI18n(d.description), repetitions: d.repetitions });
     setErrors({});
   };
 
   const openAdd = () => {
-    setForm({ ordre: list.length + 1, repetitions: 33 });
+    setForm({ nom: {}, description: {}, ordre: list.length + 1, repetitions: 33 });
     setErrors({});
     setAdding(true);
   };
@@ -89,7 +90,7 @@ export default function DhikrPage() {
   const submit = async () => {
     if (!selected) return;
     const errs: Record<string, string> = {};
-    if (!form.nom) errs.nom = "Requis";
+    if (!hasI18n(form.nom)) errs.nom = "Requis";
     if (form.ordre === undefined || form.ordre === "") errs.ordre = "Requis";
     if (!form.repetitions) errs.repetitions = "Requis";
     setErrors(errs);
@@ -99,7 +100,7 @@ export default function DhikrPage() {
       const body = {
         nom: form.nom,
         ordre: Number(form.ordre),
-        description: form.description || "",
+        description: form.description || {},
         repetitions: Number(form.repetitions),
       };
       if (editing) {
@@ -130,8 +131,8 @@ export default function DhikrPage() {
 
   const columns: Column<Dhikr>[] = [
     { key: "ordre", header: "#", sortable: true, className: "w-14", render: (d) => <span className="font-mono text-sm">{d.ordre ?? "—"}</span> },
-    { key: "nom", header: "Nom", sortable: true, render: (d) => <span className="font-medium">{d.nom || "—"}</span> },
-    { key: "description", header: "Description", render: (d) => <span className="text-muted-foreground">{truncate(d.description, 60)}</span> },
+    { key: "nom", header: "Nom", sortable: true, render: (d) => <span className="font-medium">{loc(d.nom) || "—"}</span> },
+    { key: "description", header: "Description", render: (d) => <span className="text-muted-foreground">{truncate(loc(d.description), 60)}</span> },
     { key: "repetitions", header: "Répétitions", sortable: true, render: (d) => (
       <span className="inline-flex items-center justify-center min-w-[2rem] px-2 py-0.5 rounded-full bg-accent-soft text-accent-foreground text-xs font-semibold">{d.repetitions ?? 0}</span>
     ) },
@@ -194,7 +195,7 @@ export default function DhikrPage() {
 
       <Sheet open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-          <SheetHeader><SheetTitle>{viewing?.nom || "Dhikr"}</SheetTitle></SheetHeader>
+          <SheetHeader><SheetTitle>{loc(viewing?.nom) || "Dhikr"}</SheetTitle></SheetHeader>
           {viewLoading ? <PageSpinner /> : viewing && (
             <div className="mt-6 space-y-4">
               <DetailGrid items={[
@@ -204,8 +205,26 @@ export default function DhikrPage() {
                 ["ID Planning", viewing.id_planning],
               ]} />
               <div>
+                <div className="text-xs text-muted-foreground mb-2">Nom</div>
+                <div className="space-y-1 text-sm">
+                  {LANGS.map((l) => (
+                    <div key={l.key} className="flex gap-2">
+                      <span className="text-[10px] font-mono uppercase text-muted-foreground w-8">{l.key}</span>
+                      <span dir={l.dir}>{toI18n(viewing.nom)[l.key] || "—"}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
                 <div className="text-xs text-muted-foreground mb-2">Description</div>
-                <div className="text-sm leading-relaxed">{viewing.description || "—"}</div>
+                <div className="space-y-2 text-sm">
+                  {LANGS.map((l) => (
+                    <div key={l.key}>
+                      <div className="text-[10px] font-mono uppercase text-muted-foreground">{l.key}</div>
+                      <div dir={l.dir} className="leading-relaxed">{toI18n(viewing.description)[l.key] || "—"}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -213,11 +232,11 @@ export default function DhikrPage() {
       </Sheet>
 
       <Dialog open={isModalOpen} onOpenChange={(o) => { if (!o) { setAdding(false); setEditing(null); } }}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{editing ? "Modifier le dhikr" : "Ajouter un dhikr"}</DialogTitle></DialogHeader>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-2">
-            <Field label="Nom *" error={errors.nom} className="sm:col-span-2">
-              <Input value={form.nom || ""} onChange={(e) => setForm((f: any) => ({ ...f, nom: e.target.value }))} className={errors.nom ? "border-destructive" : ""} />
+            <Field label="Nom * (3 langues)" error={errors.nom} className="sm:col-span-2">
+              <I18nInput value={form.nom || {}} onChange={(v) => setForm((f: any) => ({ ...f, nom: v }))} error={!!errors.nom} />
             </Field>
             <Field label="Ordre *" error={errors.ordre}>
               <Input type="number" value={form.ordre ?? ""} onChange={(e) => setForm((f: any) => ({ ...f, ordre: e.target.value }))} className={errors.ordre ? "border-destructive" : ""} />
@@ -225,8 +244,8 @@ export default function DhikrPage() {
             <Field label="Répétitions *" error={errors.repetitions}>
               <Input type="number" value={form.repetitions ?? ""} onChange={(e) => setForm((f: any) => ({ ...f, repetitions: e.target.value }))} className={errors.repetitions ? "border-destructive" : ""} />
             </Field>
-            <Field label="Description" className="sm:col-span-2">
-              <Textarea rows={3} value={form.description || ""} onChange={(e) => setForm((f: any) => ({ ...f, description: e.target.value }))} />
+            <Field label="Description (3 langues)" className="sm:col-span-2">
+              <I18nInput value={form.description || {}} onChange={(v) => setForm((f: any) => ({ ...f, description: v }))} multiline rows={2} />
             </Field>
             {!editing && (
               <Field label="Planning" className="sm:col-span-2">
@@ -243,7 +262,7 @@ export default function DhikrPage() {
 
       <ConfirmDialog
         open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}
-        title="Supprimer ce dhikr ?" description={deleting ? `Ceci supprimera « ${deleting.nom} ».` : ""}
+        title="Supprimer ce dhikr ?" description={deleting ? `Ceci supprimera « ${loc(deleting.nom)} ».` : ""}
         onConfirm={confirmDelete} loading={delLoading}
       />
     </div>

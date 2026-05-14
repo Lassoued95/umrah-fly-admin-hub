@@ -12,12 +12,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Field, DetailGrid } from "./Users";
+import { I18nInput, I18nValue, toI18n, loc, hasI18n, LANGS } from "@/components/I18nField";
 
 type Dua = {
   id_douaa: number;
-  titre?: string;
+  titre?: any;
   texte_arabe?: string;
-  traduction?: string;
+  traduction?: any;
   audio_url?: string;
 };
 
@@ -29,7 +30,9 @@ export default function Duas() {
   const [loading, setLoading] = useState(true);
   const [viewing, setViewing] = useState<Dua | null>(null);
   const [adding, setAdding] = useState(false);
-  const [form, setForm] = useState<Partial<Dua>>({});
+  const [titre, setTitre] = useState<I18nValue>({});
+  const [traduction, setTraduction] = useState<I18nValue>({});
+  const [texteArabe, setTexteArabe] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [audioFile, setAudioFile] = useState<File | null>(null);
@@ -45,10 +48,14 @@ export default function Duas() {
 
   useEffect(() => { load(); }, []);
 
+  const resetForm = () => {
+    setTitre({}); setTraduction({}); setTexteArabe(""); setAudioFile(null); setErrors({});
+  };
+
   const submit = async () => {
     const errs: Record<string, string> = {};
-    if (!form.titre) errs.titre = "Requis";
-    if (!form.texte_arabe) errs.texte_arabe = "Requis";
+    if (!hasI18n(titre)) errs.titre = "Requis";
+    if (!texteArabe.trim()) errs.texte_arabe = "Requis";
     if (!audioFile) errs.audio = "Fichier audio requis";
     setErrors(errs);
     if (Object.keys(errs).length) return;
@@ -61,16 +68,15 @@ export default function Duas() {
       const { filename } = uploadRes;
 
       await api.post("/douaa/", {
-        titre: form.titre,
-        texte_arabe: form.texte_arabe,
-        traduction: form.traduction,
+        titre,
+        texte_arabe: texteArabe,
+        traduction,
         audio_filename: filename,
       });
 
       toast.success("Douaa créée avec succès");
       setAdding(false);
-      setForm({});
-      setAudioFile(null);
+      resetForm();
       load();
     } catch (err: any) {
       toast.error(err?.message || "Échec de la création");
@@ -79,9 +85,9 @@ export default function Duas() {
 
   const columns: Column<Dua>[] = [
     { key: "id_douaa", header: "ID", sortable: true, className: "w-16" },
-    { key: "titre", header: "Titre", sortable: true, render: (d) => <span className="font-medium">{d.titre || "—"}</span> },
+    { key: "titre", header: "Titre", sortable: true, render: (d) => <span className="font-medium">{loc(d.titre) || "—"}</span> },
     { key: "texte_arabe", header: "Arabe", render: (d) => <span dir="rtl" className="font-arabic text-foreground/80">{truncate(d.texte_arabe, 40)}</span> },
-    { key: "traduction", header: "Traduction", render: (d) => <span className="text-muted-foreground">{truncate(d.traduction, 60)}</span> },
+    { key: "traduction", header: "Traduction", render: (d) => <span className="text-muted-foreground">{truncate(loc(d.traduction), 60)}</span> },
     { key: "audio_url", header: "Audio", render: (d) => d.audio_url ? <span className="text-xs text-primary">✓ disponible</span> : <span className="text-xs text-muted-foreground">—</span> },
   ];
 
@@ -90,7 +96,7 @@ export default function Duas() {
       <PageHeader
         title="Douaas"
         description="Bibliothèque des invocations."
-        action={<Button onClick={() => { setForm({}); setErrors({}); setAdding(true); }}><Plus size={16} className="mr-1" /> Ajouter une douaa</Button>}
+        action={<Button onClick={() => { resetForm(); setAdding(true); }}><Plus size={16} className="mr-1" /> Ajouter une douaa</Button>}
       />
 
       <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
@@ -107,9 +113,20 @@ export default function Duas() {
 
       <Sheet open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-          <SheetHeader><SheetTitle>{viewing?.titre || "Douaa"}</SheetTitle></SheetHeader>
+          <SheetHeader><SheetTitle>{loc(viewing?.titre) || "Douaa"}</SheetTitle></SheetHeader>
           {viewing && (
             <div className="mt-6 space-y-5">
+              <div>
+                <div className="text-xs text-muted-foreground mb-2">Titre</div>
+                <div className="space-y-1 text-sm">
+                  {LANGS.map((l) => (
+                    <div key={l.key} className="flex gap-2">
+                      <span className="text-[10px] font-mono uppercase text-muted-foreground w-8">{l.key}</span>
+                      <span dir={l.dir}>{toI18n(viewing.titre)[l.key] || "—"}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
               <div>
                 <div className="text-xs text-muted-foreground mb-2">Arabe</div>
                 <div dir="rtl" className="text-2xl leading-loose text-right font-medium bg-accent-soft/40 p-4 rounded-lg">
@@ -118,7 +135,14 @@ export default function Duas() {
               </div>
               <div>
                 <div className="text-xs text-muted-foreground mb-2">Traduction</div>
-                <div className="text-sm leading-relaxed">{viewing.traduction || "—"}</div>
+                <div className="space-y-2 text-sm">
+                  {LANGS.map((l) => (
+                    <div key={l.key}>
+                      <div className="text-[10px] font-mono uppercase text-muted-foreground">{l.key}</div>
+                      <div dir={l.dir} className="leading-relaxed">{toI18n(viewing.traduction)[l.key] || "—"}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
               {viewing.audio_url && (
                 <div>
@@ -132,18 +156,18 @@ export default function Duas() {
         </SheetContent>
       </Sheet>
 
-      <Dialog open={adding} onOpenChange={(o) => { setAdding(o); if (!o) setAudioFile(null); }}>
-        <DialogContent className="max-w-lg">
+      <Dialog open={adding} onOpenChange={(o) => { setAdding(o); if (!o) resetForm(); }}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Ajouter une douaa</DialogTitle></DialogHeader>
-          <div className="space-y-3 py-2">
-            <Field label="Titre *" error={errors.titre}>
-              <Input value={form.titre || ""} onChange={(e) => setForm((f) => ({ ...f, titre: e.target.value }))} className={errors.titre ? "border-destructive" : ""} />
+          <div className="space-y-4 py-2">
+            <Field label="Titre * (3 langues)" error={errors.titre}>
+              <I18nInput value={titre} onChange={setTitre} error={!!errors.titre} />
             </Field>
             <Field label="Texte arabe *" error={errors.texte_arabe}>
-              <Textarea dir="rtl" rows={4} value={form.texte_arabe || ""} onChange={(e) => setForm((f) => ({ ...f, texte_arabe: e.target.value }))} className={errors.texte_arabe ? "border-destructive" : ""} />
+              <Textarea dir="rtl" rows={4} value={texteArabe} onChange={(e) => setTexteArabe(e.target.value)} className={errors.texte_arabe ? "border-destructive" : ""} />
             </Field>
-            <Field label="Traduction">
-              <Textarea rows={3} value={form.traduction || ""} onChange={(e) => setForm((f) => ({ ...f, traduction: e.target.value }))} />
+            <Field label="Traduction (3 langues)">
+              <I18nInput value={traduction} onChange={setTraduction} multiline rows={2} />
             </Field>
             <Field label="Fichier audio (.mp3) *" error={errors.audio}>
               <Input

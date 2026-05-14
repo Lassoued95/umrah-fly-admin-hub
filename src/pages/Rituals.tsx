@@ -14,13 +14,14 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Field, DetailGrid } from "./Users";
 import { cn } from "@/lib/utils";
+import { I18nInput, I18nValue, toI18n, loc, hasI18n, LANGS } from "@/components/I18nField";
 
-type Planning = { id_planning: number; titre?: string; type_evenement?: string; date_heure?: string };
-type Etape = { id_etape: number; titre?: string; description?: string; ordre?: number; id_rituel?: number };
-type Rituel = { id_rituel: number; nom?: string; ordre?: number; description?: string; id_douaa?: number; etapes?: Etape[] };
+type Planning = { id_planning: number; titre?: any; type_evenement?: string; date_heure?: string };
+type Etape = { id_etape: number; titre?: any; description?: any; ordre?: number; id_rituel?: number };
+type Rituel = { id_rituel: number; nom?: any; ordre?: number; description?: any; id_douaa?: number; etapes?: Etape[] };
 
 const truncate = (s?: string, n = 60) => !s ? "—" : s.length > n ? s.slice(0, n) + "…" : s;
-const planLabel = (p: Planning) => p.titre || p.type_evenement || `Planning #${p.id_planning}`;
+const planLabel = (p: Planning) => loc(p.titre) || p.type_evenement || `Planning #${p.id_planning}`;
 
 export default function Rituals() {
   const [plannings, setPlannings] = useState<Planning[]>([]);
@@ -78,7 +79,7 @@ export default function Rituals() {
   const submitRituel = async () => {
     if (!selected) return;
     const errs: Record<string, string> = {};
-    if (!form.nom) errs.nom = "Requis";
+    if (!hasI18n(form.nom)) errs.nom = "Requis";
     if (form.ordre === undefined || form.ordre === "") errs.ordre = "Requis";
     setErrors(errs);
     if (Object.keys(errs).length) return;
@@ -87,7 +88,7 @@ export default function Rituals() {
       const payload = {
         nom: form.nom,
         ordre: Number(form.ordre),
-        description: form.description || "",
+        description: form.description || {},
         id_planning: selected.id_planning,
         id_douaa: form.id_douaa ? Number(form.id_douaa) : null,
       };
@@ -132,7 +133,7 @@ export default function Rituals() {
     if (!viewing) return;
     const data = etapeDialog.data;
     const errs: Record<string, string> = {};
-    if (!data.titre) errs.titre = "Requis";
+    if (!hasI18n(data.titre)) errs.titre = "Requis";
     if (data.ordre === undefined || data.ordre === "") errs.ordre = "Requis";
     setEtapeErrors(errs);
     if (Object.keys(errs).length) return;
@@ -140,7 +141,7 @@ export default function Rituals() {
     try {
       const payload = {
         titre: data.titre,
-        description: data.description || "",
+        description: data.description || {},
         ordre: Number(data.ordre),
         id_rituel: viewing.id_rituel,
       };
@@ -168,14 +169,14 @@ export default function Rituals() {
 
   const columns: Column<Rituel>[] = [
     { key: "ordre", header: "#", sortable: true, className: "w-14", render: (r) => <span className="font-mono text-sm">{r.ordre ?? "—"}</span> },
-    { key: "nom", header: "Nom", sortable: true, render: (r) => <span className="font-medium">{r.nom || "—"}</span> },
-    { key: "description", header: "Description", render: (r) => <span className="text-muted-foreground">{truncate(r.description, 60)}</span> },
+    { key: "nom", header: "Nom", sortable: true, render: (r) => <span className="font-medium">{loc(r.nom) || "—"}</span> },
+    { key: "description", header: "Description", render: (r) => <span className="text-muted-foreground">{truncate(loc(r.description), 60)}</span> },
     { key: "id_douaa", header: "ID Douaa", render: (r) => r.id_douaa ?? "—" },
   ];
 
   const openCreate = () => {
     setEditingRit(null);
-    setForm({ ordre: rituals.length + 1 });
+    setForm({ nom: {}, description: {}, ordre: rituals.length + 1 });
     setErrors({});
     setAdding(true);
   };
@@ -183,9 +184,9 @@ export default function Rituals() {
   const openEdit = (r: Rituel) => {
     setEditingRit(r);
     setForm({
-      nom: r.nom ?? "",
+      nom: toI18n(r.nom),
       ordre: r.ordre ?? "",
-      description: r.description ?? "",
+      description: toI18n(r.description),
       id_douaa: r.id_douaa ?? "",
     });
     setErrors({});
@@ -254,7 +255,7 @@ export default function Rituals() {
       {/* Rituel detail + étapes management */}
       <Sheet open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
         <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
-          <SheetHeader><SheetTitle>{viewing?.nom || "Rituel"}</SheetTitle></SheetHeader>
+          <SheetHeader><SheetTitle>{loc(viewing?.nom) || "Rituel"}</SheetTitle></SheetHeader>
           {viewing && (
             <div className="mt-6 space-y-6">
               <DetailGrid items={[
@@ -263,8 +264,26 @@ export default function Rituals() {
                 ["ID Douaa", viewing.id_douaa],
               ]} />
               <div>
+                <div className="text-xs text-muted-foreground mb-2">Nom</div>
+                <div className="space-y-1 text-sm">
+                  {LANGS.map((l) => (
+                    <div key={l.key} className="flex gap-2">
+                      <span className="text-[10px] font-mono uppercase text-muted-foreground w-8">{l.key}</span>
+                      <span dir={l.dir}>{toI18n(viewing.nom)[l.key] || "—"}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
                 <div className="text-xs text-muted-foreground mb-2">Description</div>
-                <div className="text-sm leading-relaxed">{viewing.description || "—"}</div>
+                <div className="space-y-2 text-sm">
+                  {LANGS.map((l) => (
+                    <div key={l.key}>
+                      <div className="text-[10px] font-mono uppercase text-muted-foreground">{l.key}</div>
+                      <div dir={l.dir} className="leading-relaxed">{toI18n(viewing.description)[l.key] || "—"}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Etapes section */}
@@ -275,7 +294,7 @@ export default function Rituals() {
                   </div>
                   <Button size="sm" onClick={() => {
                     setEtapeErrors({});
-                    setEtapeDialog({ open: true, mode: "create", data: { ordre: etapes.length + 1 } });
+                    setEtapeDialog({ open: true, mode: "create", data: { titre: {}, description: {}, ordre: etapes.length + 1 } });
                   }}>
                     <Plus size={14} className="mr-1" /> Ajouter
                   </Button>
@@ -291,8 +310,8 @@ export default function Rituals() {
                       <div key={e.id_etape} className="border rounded-lg p-3 flex items-start gap-3">
                         <div className="font-mono text-xs bg-muted rounded px-2 py-1 mt-0.5">{e.ordre ?? "—"}</div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm">{e.titre || "—"}</div>
-                          {e.description && <div className="text-xs text-muted-foreground mt-1">{e.description}</div>}
+                          <div className="font-medium text-sm">{loc(e.titre) || "—"}</div>
+                          {loc(e.description) && <div className="text-xs text-muted-foreground mt-1">{loc(e.description)}</div>}
                         </div>
                         <div className="flex gap-1" />
 
@@ -308,11 +327,11 @@ export default function Rituals() {
 
       {/* Create / Edit rituel dialog */}
       <Dialog open={adding} onOpenChange={(o) => { setAdding(o); if (!o) { setEditingRit(null); setForm({}); } }}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{editingRit ? "Modifier le rituel" : "Ajouter un rituel"}</DialogTitle></DialogHeader>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-2">
-            <Field label="Nom *" error={errors.nom} className="sm:col-span-2">
-              <Input value={form.nom || ""} onChange={(e) => setForm((f: any) => ({ ...f, nom: e.target.value }))} className={errors.nom ? "border-destructive" : ""} />
+            <Field label="Nom * (3 langues)" error={errors.nom} className="sm:col-span-2">
+              <I18nInput value={form.nom || {}} onChange={(v) => setForm((f: any) => ({ ...f, nom: v }))} error={!!errors.nom} />
             </Field>
             <Field label="Ordre *" error={errors.ordre}>
               <Input type="number" value={form.ordre ?? ""} onChange={(e) => setForm((f: any) => ({ ...f, ordre: e.target.value }))} className={errors.ordre ? "border-destructive" : ""} />
@@ -320,11 +339,11 @@ export default function Rituals() {
             <Field label="ID Douaa">
               <Input type="number" value={form.id_douaa ?? ""} onChange={(e) => setForm((f: any) => ({ ...f, id_douaa: e.target.value }))} />
             </Field>
-            <Field label="Planning">
+            <Field label="Planning" className="sm:col-span-2">
               <Input value={selected ? `${planLabel(selected)} (#${selected.id_planning})` : ""} disabled />
             </Field>
-            <Field label="Description" className="sm:col-span-2">
-              <Textarea rows={3} value={form.description || ""} onChange={(e) => setForm((f: any) => ({ ...f, description: e.target.value }))} />
+            <Field label="Description (3 langues)" className="sm:col-span-2">
+              <I18nInput value={form.description || {}} onChange={(v) => setForm((f: any) => ({ ...f, description: v }))} multiline rows={2} />
             </Field>
           </div>
           <DialogFooter>
@@ -336,20 +355,20 @@ export default function Rituals() {
 
       {/* Etape create/edit dialog */}
       <Dialog open={etapeDialog.open} onOpenChange={(o) => setEtapeDialog((d) => ({ ...d, open: o }))}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{etapeDialog.mode === "edit" ? "Modifier l'étape" : "Ajouter une étape"}</DialogTitle></DialogHeader>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-2">
-            <Field label="Titre *" error={etapeErrors.titre} className="sm:col-span-2">
-              <Input value={etapeDialog.data.titre || ""} onChange={(e) => setEtapeDialog((d) => ({ ...d, data: { ...d.data, titre: e.target.value } }))} className={etapeErrors.titre ? "border-destructive" : ""} />
+            <Field label="Titre * (3 langues)" error={etapeErrors.titre} className="sm:col-span-2">
+              <I18nInput value={etapeDialog.data.titre || {}} onChange={(v) => setEtapeDialog((d) => ({ ...d, data: { ...d.data, titre: v } }))} error={!!etapeErrors.titre} />
             </Field>
             <Field label="Ordre *" error={etapeErrors.ordre}>
               <Input type="number" value={etapeDialog.data.ordre ?? ""} onChange={(e) => setEtapeDialog((d) => ({ ...d, data: { ...d.data, ordre: e.target.value } }))} className={etapeErrors.ordre ? "border-destructive" : ""} />
             </Field>
             <Field label="Rituel">
-              <Input value={viewing ? `${viewing.nom} (#${viewing.id_rituel})` : ""} disabled />
+              <Input value={viewing ? `${loc(viewing.nom)} (#${viewing.id_rituel})` : ""} disabled />
             </Field>
-            <Field label="Description" className="sm:col-span-2">
-              <Textarea rows={3} value={etapeDialog.data.description || ""} onChange={(e) => setEtapeDialog((d) => ({ ...d, data: { ...d.data, description: e.target.value } }))} />
+            <Field label="Description (3 langues)" className="sm:col-span-2">
+              <I18nInput value={etapeDialog.data.description || {}} onChange={(v) => setEtapeDialog((d) => ({ ...d, data: { ...d.data, description: v } }))} multiline rows={2} />
             </Field>
           </div>
           <DialogFooter>
@@ -363,7 +382,7 @@ export default function Rituals() {
         open={!!deletingRit}
         onOpenChange={(o) => !o && setDeletingRit(null)}
         title="Supprimer ce rituel ?"
-        description={`"${deletingRit?.nom ?? ""}" sera supprimé définitivement.`}
+        description={`"${loc(deletingRit?.nom)}" sera supprimé définitivement.`}
         confirmText="Supprimer"
         loading={deletingRitLoading}
         onConfirm={confirmDeleteRituel}
@@ -374,7 +393,7 @@ export default function Rituals() {
         open={!!deletingEtape}
         onOpenChange={(o) => !o && setDeletingEtape(null)}
         title="Supprimer cette étape ?"
-        description={`"${deletingEtape?.titre ?? ""}" sera supprimée définitivement.`}
+        description={`"${loc(deletingEtape?.titre)}" sera supprimée définitivement.`}
         confirmText="Supprimer"
         loading={deletingEtapeLoading}
         onConfirm={confirmDeleteEtape}
