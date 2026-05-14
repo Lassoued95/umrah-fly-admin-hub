@@ -77,7 +77,7 @@ export default function DhikrPage() {
 
   const openEdit = (d: Dhikr) => {
     setEditing(d);
-    setForm({ nom: d.nom, ordre: d.ordre, description: d.description, repetitions: d.repetitions });
+    setForm({ nom: toI18n(d.nom), ordre: d.ordre, description: toI18n(d.description), repetitions: d.repetitions });
     setErrors({});
   };
 
