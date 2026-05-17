@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NavLink, useNavigate, Outlet } from "react-router-dom";
 import {
-  LayoutDashboard, Users, BookOpen, Landmark, Sparkles, Bell, LogOut, Menu, X, CalendarRange,
+  LayoutDashboard, Users, BookOpen, Landmark, Sparkles, Bell, LogOut, Menu, X, CalendarRange, FileText,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,7 @@ const links = [
   { to: "/duas", label: "Douaas", icon: BookOpen },
   { to: "/rituals", label: "Rituels", icon: Landmark },
   { to: "/dhikr", label: "Dhikr", icon: Sparkles },
+  { to: "/posts", label: "Publications", icon: FileText },
   { to: "/notifications", label: "Notifications", icon: Bell },
 ];
 
