@@ -12,10 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-// ⚙️ Configure these to match your Python AI service deployment
-const RAG_BASE_URL = "https://pipy-operculate-mi.ngrok-free.dev";
-const ADMIN_SECRET = "change-me-in-env";
-
 type UserMini = {
   id_utilisateur: number;
   nom?: string;
@@ -38,18 +34,7 @@ const fullName = (u?: UserMini) => `${u?.prenom || ""} ${u?.nom || ""}`.trim() |
 const isVectorized = (p: Post) => p.embedding != null;
 
 async function callVectorize(postId: number) {
-  const res = await fetch(`${RAG_BASE_URL}/admin/vectorize-post/${postId}`, {
-    method: "POST",
-    headers: {
-      "x-admin-secret": ADMIN_SECRET,
-      "ngrok-skip-browser-warning": "true",
-    },
-  });
-  if (!res.ok) {
-    const txt = await res.text().catch(() => "");
-    throw new Error(txt || `Échec (${res.status})`);
-  }
-  return res.json().catch(() => ({}));
+  return api.post(`/ai/admin/vectorize-post/${postId}`);
 }
 
 export default function RagManagementPage() {
@@ -159,14 +144,19 @@ export default function RagManagementPage() {
   }
 
   const columns: Column<Post>[] = [
-    { key: "id_post", header: "ID", sortable: true, className: "w-16", render: (p) => <span className="font-mono text-xs">#{p.id_post}</span> },
+    {
+      key: "id_post", header: "ID", sortable: true, className: "w-16",
+      render: (p) => <span className="font-mono text-xs">#{p.id_post}</span>,
+    },
     {
       key: "auteur", header: "Auteur",
       render: (p) => (
         <div className="flex items-center gap-2.5">
           <Avatar className="h-8 w-8">
             {p.utilisateur?.avatar && <AvatarImage src={p.utilisateur.avatar} alt="" />}
-            <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">{initials(p.utilisateur)}</AvatarFallback>
+            <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+              {initials(p.utilisateur)}
+            </AvatarFallback>
           </Avatar>
           <span className="font-medium text-sm">{fullName(p.utilisateur)}</span>
         </div>
@@ -174,11 +164,17 @@ export default function RagManagementPage() {
     },
     {
       key: "contenu", header: "Contenu", sortable: true,
-      render: (p) => <div className="max-w-md line-clamp-2 text-muted-foreground text-sm">{p.contenu || "—"}</div>,
+      render: (p) => (
+        <div className="max-w-md line-clamp-2 text-muted-foreground text-sm">
+          {p.contenu || "—"}
+        </div>
+      ),
     },
     {
       key: "lieu", header: "Lieu",
-      render: (p) => p.lieu ? <span className="inline-flex items-center gap-1 text-xs"><MapPin size={12} /> {p.lieu}</span> : "—",
+      render: (p) => p.lieu
+        ? <span className="inline-flex items-center gap-1 text-xs"><MapPin size={12} /> {p.lieu}</span>
+        : "—",
     },
     {
       key: "date_creation", header: "Créé le", sortable: true,
@@ -188,8 +184,16 @@ export default function RagManagementPage() {
       key: "status", header: "Statut", sortable: true,
       accessor: (p) => (isVectorized(p) ? 1 : 0),
       render: (p) => isVectorized(p)
-        ? <Badge className="bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/15 border-emerald-500/30"><CheckCircle2 size={12} className="mr-1" /> Vectorisé</Badge>
-        : <Badge variant="outline" className="text-amber-700 border-amber-500/40"><Clock size={12} className="mr-1" /> En attente</Badge>,
+        ? (
+          <Badge className="bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/15 border-emerald-500/30">
+            <CheckCircle2 size={12} className="mr-1" /> Vectorisé
+          </Badge>
+        )
+        : (
+          <Badge variant="outline" className="text-amber-700 border-amber-500/40">
+            <Clock size={12} className="mr-1" /> En attente
+          </Badge>
+        ),
     },
   ];
 
@@ -205,7 +209,8 @@ export default function RagManagementPage() {
               <Input
                 className="pl-9 w-full sm:w-64"
                 placeholder="Rechercher..."
-                value={query} onChange={(e) => setQuery(e.target.value)}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
               />
             </div>
             <Button onClick={vectorizeAll} disabled={bulkRunning || stats.pending === 0}>
@@ -239,7 +244,13 @@ export default function RagManagementPage() {
             columns={columns}
             data={filtered}
             rowKey={(p) => p.id_post}
-            empty={<EmptyState icon={<Database size={26} />} title="Aucune publication" description="Rien à vectoriser." />}
+            empty={
+              <EmptyState
+                icon={<Database size={26} />}
+                title="Aucune publication"
+                description="Rien à vectoriser."
+              />
+            }
             actions={(p) => {
               const busy = busyIds.has(p.id_post);
               const done = isVectorized(p);
