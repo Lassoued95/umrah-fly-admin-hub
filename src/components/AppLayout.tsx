@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NavLink, useNavigate, Outlet } from "react-router-dom";
 import {
-  LayoutDashboard, Users, BookOpen, Landmark, Sparkles, Bell, LogOut, Menu, X, CalendarRange, FileText,
+  LayoutDashboard, Users, BookOpen, Landmark, Sparkles, Bell, LogOut, Menu, X, CalendarRange, FileText, Database,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
