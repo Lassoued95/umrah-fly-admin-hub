@@ -14,6 +14,7 @@ const links = [
   { to: "/rituals", label: "Rituels", icon: Landmark },
   { to: "/dhikr", label: "Dhikr", icon: Sparkles },
   { to: "/posts", label: "Publications", icon: FileText },
+  { to: "/rag", label: "Gestion RAG", icon: Database },
   { to: "/notifications", label: "Notifications", icon: Bell },
 ];
 
