@@ -13,6 +13,7 @@ import Duas from "./pages/Duas";
 import Rituals from "./pages/Rituals";
 import Dhikr from "./pages/Dhikr";
 import Posts from "./pages/Posts";
+import RagManagement from "./pages/RagManagement";
 import Notifications from "./pages/Notifications";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
@@ -64,6 +65,7 @@ const App = () => (
               <Route path="/rituals" element={<Rituals />} />
               <Route path="/dhikr" element={<Dhikr />} />
               <Route path="/posts" element={<Posts />} />
+              <Route path="/rag" element={<RagManagement />} />
               <Route path="/notifications" element={<Notifications />} />
             </Route>
             <Route path="*" element={<NotFound />} />
