@@ -243,6 +243,8 @@ export default function Rituals() {
               actions={(r) => (
                 <div className="flex items-center gap-1">
                   <Button size="icon" variant="ghost" onClick={() => setViewing(r)} title="Voir / Étapes"><Eye size={16} /></Button>
+                  <Button size="icon" variant="ghost" onClick={() => openEdit(r)} title="Modifier"><Pencil size={16} /></Button>
+                  <Button size="icon" variant="ghost" onClick={() => setDeletingRit(r)} title="Supprimer"><Trash2 size={16} className="text-destructive" /></Button>
                 </div>
               )}
             />
