@@ -81,7 +81,7 @@ export default function Notifications() {
     if (!deleting) return;
     setDelLoading(true);
     try {
-      await api.del(`/notifications/${deleting.id_notification}`);
+      await api.del(`/notifications/admin/${deleting.id_notification}`);
       toast.success("Notification supprimée");
       setDeleting(null); load();
     } catch (err: any) { toast.error(err?.message || "Échec de la suppression"); }
